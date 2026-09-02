@@ -33,7 +33,7 @@ export default async function LoginPage({
           <Wordmark />
           <h1 className="mt-6 display text-2xl leading-8">Sign in</h1>
           <p className="mt-2 text-sm text-fg-muted">
-            One account owns this instance. Sign in with the GitHub login it is bound to.
+            This instance is bound to a short list of GitHub accounts. Sign in with one of them.
           </p>
           {message ? (
             <p

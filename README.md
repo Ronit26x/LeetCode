@@ -1,6 +1,6 @@
 # Recur
 
-**Production:** https://recur-ronit.vercel.app (GitHub sign-in, restricted to one account)
+**Production:** https://recur-ronit.vercel.app (GitHub sign-in, restricted to allowlisted accounts)
 
 A personal LeetCode tracker and spaced-repetition reviser built for interview prep. Every solved
 problem becomes a flip card scheduled by FSRS-6 through `ts-fsrs`. Each morning at 9 AM Pacific,
@@ -27,7 +27,7 @@ pnpm dev                          # http://localhost:3000
 | `AUTH_SECRET` | `openssl rand -base64 32` |
 | `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` | A GitHub OAuth app whose callback is `http://localhost:3000/api/auth/callback/github` |
 | `AUTH_TRUST_HOST` | `true` |
-| `ALLOWED_GITHUB_LOGIN` | The only GitHub login allowed to sign in |
+| `ALLOWED_GITHUB_LOGIN` | GitHub logins allowed to sign in, comma-separated |
 | `CRON_SECRET` | Any long random string; Vercel sends it as a bearer token to the cron route |
 
 Optional: `RESEND_API_KEY` and `NUDGE_EMAIL_TO` turn on the 9 AM email (`NUDGE_EMAIL_FROM` and
