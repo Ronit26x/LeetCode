@@ -147,7 +147,7 @@ extended notes. "Solved it today" asks how the solve went and schedules the firs
 | --- | --- |
 | `pnpm dev` / `pnpm build` / `pnpm start` | Next.js |
 | `pnpm lint` / `pnpm typecheck` / `pnpm format` | ESLint, `tsc --noEmit`, Prettier |
-| `pnpm test` | Vitest: day boundary and DST, mode heuristic, retention ramp, queue interleaving, grading and undo (on PGlite) |
+| `pnpm test` | Vitest: day boundary and DST, mode heuristic, retention ramp math and the daily ramp pass, queue interleaving, grading and undo, the GitHub allowlist (database cases on PGlite) |
 | `pnpm test:e2e` | Playwright smoke: sign in, add from a URL (stubbed LeetCode), solve, review, grade, undo, theme persistence, tab-safe copy |
 | `pnpm db:generate` / `pnpm db:migrate` / `pnpm db:studio` | drizzle-kit |
 | `pnpm db:seed` | Sample data, local databases only |

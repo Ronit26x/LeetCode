@@ -1,6 +1,7 @@
 import NextAuth, { type DefaultSession } from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
+import { isAllowedGitHubLogin } from "@/lib/allowlist";
 
 declare module "next-auth" {
   interface Session {
@@ -36,10 +37,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     // The allowlist. Everything else about this instance assumes exactly one user.
     signIn({ account, profile }) {
-      if (account?.provider === "github") {
-        const login = (profile as { login?: unknown } | null)?.login;
-        return typeof login === "string" && login === ALLOWED_LOGIN;
-      }
+      if (account?.provider === "github") return isAllowedGitHubLogin(profile, ALLOWED_LOGIN);
       if (account?.provider === "test") return TEST_LOGIN !== null;
       return false;
     },
