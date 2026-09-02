@@ -1,4 +1,3 @@
-import path from "node:path";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
@@ -14,20 +13,9 @@ async function createDb(): Promise<Db> {
   if (!url) throw new Error("DATABASE_URL is not set");
 
   if (url.startsWith(PGLITE_PREFIX)) {
-    // In-process Postgres for tests and offline local development. Never in production.
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("A pglite:// DATABASE_URL is not allowed in production");
-    }
-    const target = url.slice(PGLITE_PREFIX.length);
-    const [{ PGlite }, { drizzle }, { migrate }] = await Promise.all([
-      import("@electric-sql/pglite"),
-      import("drizzle-orm/pglite"),
-      import("drizzle-orm/pglite/migrator"),
-    ]);
-    const client = target && target !== "memory" ? new PGlite(path.resolve(process.cwd(), target)) : new PGlite();
-    const db = drizzle(client, { schema });
-    await migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
-    return db;
+    if (process.env.VERCEL) throw new Error("A pglite:// DATABASE_URL is not allowed on Vercel");
+    const { createPgliteDb } = await import("./pglite");
+    return createPgliteDb(url.slice(PGLITE_PREFIX.length));
   }
 
   // Supabase through the Supavisor transaction pooler: prepared statements must be off.
@@ -42,6 +30,13 @@ async function createDb(): Promise<Db> {
 
 const globalForDb = globalThis as unknown as { __recurDb?: Promise<Db> };
 
-export const db: Db = await (globalForDb.__recurDb ??= createDb());
+/** Lazily created and cached across hot reloads. Nothing connects at import time. */
+export function getDb(): Promise<Db> {
+  globalForDb.__recurDb ??= createDb().catch((e) => {
+    globalForDb.__recurDb = undefined;
+    throw e;
+  });
+  return globalForDb.__recurDb;
+}
 
 export { schema };

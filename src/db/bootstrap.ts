@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { db } from "./index";
+import { getDb } from "./index";
 import { settings, tags, type Settings } from "./schema";
 import { DEFAULT_SETTINGS, DEFAULT_TOPIC_TAGS } from "./defaults";
 
@@ -8,6 +8,7 @@ let bootstrapped: Promise<void> | null = null;
 /** Idempotent first-run setup: the single settings row and the default topic tags. */
 export function ensureDefaults(): Promise<void> {
   bootstrapped ??= (async () => {
+    const db = await getDb();
     await db
       .insert(settings)
       .values({ id: 1, ...DEFAULT_SETTINGS })
@@ -28,6 +29,7 @@ export function ensureDefaults(): Promise<void> {
 
 export async function getSettings(): Promise<Settings> {
   await ensureDefaults();
+  const db = await getDb();
   const row = await db.query.settings.findFirst();
   if (!row) throw new Error("Settings row missing after bootstrap");
   return row;

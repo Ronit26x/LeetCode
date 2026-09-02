@@ -30,11 +30,10 @@ function useThemeColorMeta() {
   React.useEffect(() => {
     const t = (resolvedTheme ?? "light") as Theme;
     const hex = THEME_HEX[t] ?? THEME_HEX.light;
-    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.remove());
-    const meta = document.createElement("meta");
-    meta.name = "theme-color";
-    meta.content = hex;
-    document.head.appendChild(meta);
+    // Only mutate the attribute: React owns the element, so never add or remove it.
+    document
+      .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
+      .forEach((m) => m.setAttribute("content", hex));
   }, [resolvedTheme]);
 }
 

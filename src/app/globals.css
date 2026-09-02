@@ -388,3 +388,66 @@
     animation: none !important;
   }
 }
+
+/* Editor syntax colors, one set per palette. */
+:root,
+[data-theme="light"] {
+  --code-keyword: oklch(0.5 0.17 300);
+  --code-type: oklch(0.5 0.13 250);
+  --code-string: oklch(0.5 0.12 150);
+  --code-number: oklch(0.52 0.14 60);
+  --code-comment: oklch(0.6 0.02 60);
+  --code-function: oklch(0.5 0.14 262);
+  --code-meta: oklch(0.55 0.1 25);
+}
+[data-theme="dim"] {
+  --code-keyword: oklch(0.78 0.11 300);
+  --code-type: oklch(0.8 0.09 250);
+  --code-string: oklch(0.78 0.1 150);
+  --code-number: oklch(0.8 0.11 60);
+  --code-comment: oklch(0.6 0.02 60);
+  --code-function: oklch(0.8 0.1 262);
+  --code-meta: oklch(0.78 0.1 25);
+}
+[data-theme="dark"] {
+  --code-keyword: oklch(0.8 0.12 300);
+  --code-type: oklch(0.82 0.1 250);
+  --code-string: oklch(0.8 0.11 150);
+  --code-number: oklch(0.82 0.12 60);
+  --code-comment: oklch(0.58 0.02 60);
+  --code-function: oklch(0.82 0.11 262);
+  --code-meta: oklch(0.8 0.11 25);
+}
+
+/* Read-only code: line numbers in a non-selectable gutter, so select-all copies only code. */
+.code-block pre.shiki {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  font-family: var(--font-mono);
+}
+.code-block pre.shiki code {
+  display: block;
+  counter-reset: line;
+  min-width: max-content;
+}
+.code-block .line {
+  display: block;
+  padding-right: 16px;
+  min-height: 1.25rem;
+}
+.code-block .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 2.25rem;
+  margin-right: 1rem;
+  padding-left: 12px;
+  text-align: right;
+  color: var(--fg-subtle);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.code-block .line:last-child:empty {
+  display: none;
+}
