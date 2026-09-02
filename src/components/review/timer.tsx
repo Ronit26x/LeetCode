@@ -97,7 +97,7 @@ export function ResolveTimer({
       <button
         type="button"
         onClick={toggle}
-        aria-label={running ? "Pause timer" : "Start timer"}
+        aria-label={`${running ? "Pause" : "Start"} timer, ${fmt(remaining)}`}
         className={cn(
           "inline-flex h-8 min-w-24 items-center justify-center gap-1.5 rounded-md border border-border bg-surface px-2.5 text-md font-medium tabular-nums",
           over ? "text-hard" : running ? "text-foreground" : "text-fg-muted",
