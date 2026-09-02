@@ -16,7 +16,7 @@ opt-in for tests and offline dev; postgres.js hangs on the transaction pooler, s
 
 `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`,
 `pnpm db:generate`, `pnpm db:migrate` (uses DIRECT_URL), `pnpm db:studio`, `pnpm db:seed` (local
-databases only), `pnpm screenshots` (all screens, three themes, two widths; needs a dev server and
+databases only), `pnpm db:seed:gfg [--dry-run]` (idempotent GFG history import), `pnpm screenshots` (all screens, three themes, two widths; needs a dev server and
 AUTH_TEST_LOGIN), `pnpm exec tsx scripts/a11y.mts` (Lighthouse accessibility), `pnpm deploy`.
 
 Local offline loop: `.env.local` with `DATABASE_URL=pglite://.pglite` and `AUTH_TEST_LOGIN=Ronit26x`,
@@ -32,6 +32,8 @@ login (NODE_ENV=production), so verification runs on `next dev`.
   `client_review_id` makes grading idempotent; undo restores `prev_due` from the log.
 - The review day starts at `settings.dayStartHour` in `settings.timezone`. Never hardcode an offset.
 - Snippets are stored byte for byte. No formatting, no trimming, tabs preserved.
+- `prior_solved_at` is history for display and ordering only. Never use it to backdate a card,
+  pre-set stability, or fabricate review logs. Slugs are unique per (source, slug).
 - Importing a value from a `"use client"` file into a server component gives a client reference.
   Shared constants live in `src/lib/*` without a directive.
 - Use `getDb()` (lazy); nothing may touch the database at import time or build time.

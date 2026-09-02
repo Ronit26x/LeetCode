@@ -1,11 +1,12 @@
 import { ArrowSquareOut } from "@phosphor-icons/react/dist/ssr";
-import { DifficultyBadge, TagBadge } from "@/components/common/badges";
+import { DifficultyBadge, SourceBadge, TagBadge } from "@/components/common/badges";
 import type { Difficulty, TagColor } from "@/db/schema";
 import { cn } from "@/lib/utils";
 
 export interface CardFrontData {
   title: string;
   leetcodeNumber: number | null;
+  source?: "leetcode" | "gfg" | "other";
   difficulty: Difficulty;
   url: string | null;
   promptSummary: string;
@@ -26,6 +27,7 @@ export function CardFront({
     <div className={cn("flex flex-col gap-4", className)}>
       <div className="flex flex-wrap items-center gap-2 text-2xs text-fg-muted">
         {data.leetcodeNumber ? <span>{data.leetcodeNumber}</span> : null}
+        {data.source ? <SourceBadge source={data.source} /> : null}
         <DifficultyBadge difficulty={data.difficulty} plain />
         {data.tags.map((t) => (
           <TagBadge key={t.id} name={t.name} color={t.color} />
@@ -37,7 +39,12 @@ export function CardFront({
             rel="noreferrer"
             className="ml-auto inline-flex h-6 items-center gap-1 rounded-sm px-1 text-2xs text-fg-muted hover:bg-hover hover:text-foreground"
           >
-            LeetCode <ArrowSquareOut size={12} />
+            {data.source === "gfg"
+              ? "GeeksforGeeks"
+              : data.source === "other"
+                ? "Open"
+                : "LeetCode"}{" "}
+            <ArrowSquareOut size={12} />
           </a>
         ) : null}
       </div>

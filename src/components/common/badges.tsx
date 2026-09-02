@@ -154,3 +154,58 @@ export function StatusBadge({
     </span>
   );
 }
+
+const SOURCE_LABEL: Record<"leetcode" | "gfg" | "other", string> = {
+  leetcode: "LC",
+  gfg: "GFG",
+  other: "Other",
+};
+
+/** A small source mark. LeetCode problems also carry a number, so the mark is shown for the others by default. */
+export function SourceBadge({
+  source,
+  className,
+  always,
+}: {
+  source: "leetcode" | "gfg" | "other";
+  className?: string;
+  always?: boolean;
+}) {
+  if (source === "leetcode" && !always) return null;
+  return (
+    <span
+      className={cn(
+        base,
+        "border border-border-strong font-mono text-[10px] tracking-[0.04em] text-fg-muted",
+        className,
+      )}
+      title={
+        source === "gfg" ? "GeeksforGeeks" : source === "leetcode" ? "LeetCode" : "Other source"
+      }
+    >
+      {SOURCE_LABEL[source]}
+    </span>
+  );
+}
+
+const TIER_CLASSES: Record<"core" | "warmup" | "skip", string> = {
+  core: "bg-primary/12 text-primary",
+  warmup: "bg-sunken text-fg-muted",
+  skip: "bg-sunken text-fg-subtle",
+};
+const TIER_LABEL: Record<"core" | "warmup" | "skip", string> = {
+  core: "Core",
+  warmup: "Warmup",
+  skip: "Skip",
+};
+
+export function TierBadge({
+  tier,
+  className,
+}: {
+  tier: "core" | "warmup" | "skip" | null;
+  className?: string;
+}) {
+  if (!tier) return null;
+  return <span className={cn(base, TIER_CLASSES[tier], className)}>{TIER_LABEL[tier]}</span>;
+}

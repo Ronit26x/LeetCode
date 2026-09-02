@@ -76,8 +76,13 @@ export async function buildExport(db: Db): Promise<ExportFile> {
       resolveCount: p.resolveCount,
       lastMode: p.lastMode,
       firstSolvedAt: iso(p.firstSolvedAt),
+      source: p.source,
+      tier: p.tier,
+      priorSolvedAt: p.priorSolvedAt,
+      priorSolvedPrecision: p.priorSolvedPrecision,
+      importBatch: p.importBatch,
       createdAt: p.createdAt.toISOString(),
-      tags: p.problemTags.map((pt) => pt.tag.name),
+      tags: [...p.problemTags].sort((a, b) => a.position - b.position).map((pt) => pt.tag.name),
       related: p.relations.map((r) => r.related.slug),
       snippets: p.snippets.map((s) => ({
         label: s.label,
@@ -184,9 +189,13 @@ export async function importData(
         preview.tags.create++;
       }
       // Problems
+      // Keyed by source + slug: the same slug can exist on LeetCode and GeeksforGeeks.
+      const keyOf = (source: string, slug: string) => `${source}:${slug}`;
       const idBySlug = new Map<string, string>();
-      for (const p of await tx.select({ id: problems.id, slug: problems.slug }).from(problems))
-        idBySlug.set(p.slug, p.id);
+      for (const p of await tx
+        .select({ id: problems.id, slug: problems.slug, source: problems.source })
+        .from(problems))
+        idBySlug.set(keyOf(p.source, p.slug), p.id);
       for (const p of file.problems) {
         const values = {
           leetcodeNumber: p.leetcodeNumber,
@@ -205,9 +214,14 @@ export async function importData(
           resolveCount: p.resolveCount,
           lastMode: p.lastMode,
           firstSolvedAt: p.firstSolvedAt ? new Date(p.firstSolvedAt) : null,
+          source: p.source,
+          tier: p.tier,
+          priorSolvedAt: p.priorSolvedAt,
+          priorSolvedPrecision: p.priorSolvedPrecision,
+          importBatch: p.importBatch,
           updatedAt: now,
         };
-        let id = idBySlug.get(p.slug);
+        let id = idBySlug.get(keyOf(p.source, p.slug));
         if (id) {
           await tx.update(problems).set(values).where(eq(problems.id, id));
           preview.problems.update++;
@@ -221,12 +235,12 @@ export async function importData(
             })
             .returning({ id: problems.id });
           id = row.id;
-          idBySlug.set(p.slug, id);
+          idBySlug.set(keyOf(p.source, p.slug), id);
           preview.problems.create++;
         }
         // Tags for this problem: a name not in the file's tag list still gets created.
         await tx.delete(problemTags).where(eq(problemTags.problemId, id));
-        for (const name of p.tags) {
+        for (const [position, name] of p.tags.entries()) {
           let tagId = tagIdByLower.get(name.toLowerCase());
           if (!tagId) {
             const [row] = await tx
@@ -237,20 +251,21 @@ export async function importData(
             tagIdByLower.set(name.toLowerCase(), tagId);
             preview.tags.create++;
           }
-          await tx.insert(problemTags).values({ problemId: id, tagId }).onConflictDoNothing();
+          await tx
+            .insert(problemTags)
+            .values({ problemId: id, tagId, position })
+            .onConflictDoNothing();
         }
         // Snippets: replace, byte for byte.
         await tx.delete(snippets).where(eq(snippets.problemId, id));
         for (const [i, s] of p.snippets.entries()) {
-          await tx
-            .insert(snippets)
-            .values({
-              problemId: id,
-              label: s.label,
-              language: s.language,
-              code: s.code,
-              sortOrder: s.sortOrder ?? i,
-            });
+          await tx.insert(snippets).values({
+            problemId: id,
+            label: s.label,
+            language: s.language,
+            code: s.code,
+            sortOrder: s.sortOrder ?? i,
+          });
           preview.snippets++;
         }
         // Card
@@ -306,10 +321,13 @@ export async function importData(
       }
       // Relations, once every slug is known.
       for (const p of file.problems) {
-        const id = idBySlug.get(p.slug)!;
+        const id = idBySlug.get(keyOf(p.source, p.slug))!;
         await tx.delete(problemRelations).where(eq(problemRelations.problemId, id));
         for (const slug of p.related) {
-          const rid = idBySlug.get(slug);
+          // Related problems are looked up on the same source first, then anywhere.
+          const rid =
+            idBySlug.get(keyOf(p.source, slug)) ??
+            [...idBySlug.entries()].find(([k]) => k.endsWith(":" + slug))?.[1];
           if (!rid) {
             preview.warnings.push(
               `${p.slug}: related problem ${slug} is not in the file or the library`,

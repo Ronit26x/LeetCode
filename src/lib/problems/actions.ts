@@ -12,10 +12,12 @@ import {
   reviewLogs,
   snippets,
   tags,
+  type ProblemSource,
+  type ProblemTier,
 } from "@/db/schema";
 import { getSettings } from "@/db/bootstrap";
 import { requireSession } from "@/lib/session";
-import { fetchLeetCodeQuestion, mapTopicTags, parseLeetCodeInput } from "@/lib/leetcode";
+import { fetchLeetCodeQuestion, mapTopicTags, parseProblemUrl } from "@/lib/leetcode";
 import { applyFirstSolve } from "@/lib/fsrs/grade";
 import { logToRow, cardToRow, rowToCard } from "@/lib/fsrs/core";
 import { schedulerForNow } from "@/lib/fsrs/scheduler";
@@ -45,26 +47,47 @@ function revalidateProblemPaths(id?: string) {
 }
 
 export interface PrefillResult {
-  slug: string;
+  source: ProblemSource;
+  slug: string | null;
   url: string;
   number: number | null;
   title: string;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: "easy" | "medium" | "hard" | null;
   matchedTagIds: string[];
   suggestedNewTags: string[];
   existingProblemId: string | null;
+  /** True when LeetCode answered; GFG and other URLs are recorded, not fetched. */
+  prefilled: boolean;
 }
 
-/** Prefill from LeetCode. Times out at 4 s and reports the failure; the form falls back to manual entry. */
-export async function prefillFromLeetCode(input: string): Promise<ActionResult<PrefillResult>> {
+/**
+ * Any URL. LeetCode is prefilled from its GraphQL endpoint (4 s timeout, then manual entry);
+ * GeeksforGeeks sets the source and slug with no prefill; anything else becomes "other".
+ */
+export async function prefillFromUrl(input: string): Promise<ActionResult<PrefillResult>> {
   await requireSession();
   const db = await getDb();
-  const parsed = parseLeetCodeInput(input);
-  if (!parsed) return fail("Paste a LeetCode problem URL or a slug like two-sum.");
-  const existing = await db.query.problems.findFirst({
-    where: eq(problems.slug, parsed.slug),
-    columns: { id: true },
-  });
+  const parsed = parseProblemUrl(input);
+  if (!parsed) return fail("Paste a problem URL, or a LeetCode slug like two-sum.");
+  const existing = parsed.slug
+    ? await db.query.problems.findFirst({
+        where: and(eq(problems.source, parsed.source), eq(problems.slug, parsed.slug)),
+        columns: { id: true },
+      })
+    : null;
+  const base: PrefillResult = {
+    source: parsed.source,
+    slug: parsed.slug,
+    url: parsed.url,
+    number: null,
+    title: "",
+    difficulty: null,
+    matchedTagIds: [],
+    suggestedNewTags: [],
+    existingProblemId: existing?.id ?? null,
+    prefilled: false,
+  };
+  if (parsed.source !== "leetcode") return { ok: true, data: base };
   try {
     const [q, tagRows] = await Promise.all([
       fetchLeetCodeQuestion(parsed.slug),
@@ -74,14 +97,13 @@ export async function prefillFromLeetCode(input: string): Promise<ActionResult<P
     return {
       ok: true,
       data: {
-        slug: q.slug,
-        url: q.url,
+        ...base,
         number: q.number,
         title: q.title,
         difficulty: q.difficulty,
         matchedTagIds: mapped.matched.map((t) => t.id),
         suggestedNewTags: mapped.unmatched,
-        existingProblemId: existing?.id ?? null,
+        prefilled: true,
       },
     };
   } catch (e) {
@@ -91,6 +113,11 @@ export async function prefillFromLeetCode(input: string): Promise<ActionResult<P
       error: `Could not reach LeetCode for ${parsed.slug}. Fill in the title yourself.`,
     };
   }
+}
+
+/** @deprecated use prefillFromUrl */
+export async function prefillFromLeetCode(input: string): Promise<ActionResult<PrefillResult>> {
+  return prefillFromUrl(input);
 }
 
 async function ensureTags(tx: Tx, tagIds: string[], newTags: string[]): Promise<string[]> {
@@ -124,7 +151,7 @@ async function replaceTags(tx: Tx, problemId: string, tagIds: string[]) {
   if (tagIds.length) {
     await tx
       .insert(problemTags)
-      .values(tagIds.map((tagId) => ({ problemId, tagId })))
+      .values(tagIds.map((tagId, position) => ({ problemId, tagId, position })))
       .onConflictDoNothing();
   }
 }
@@ -193,10 +220,10 @@ export async function createProblem(
   const now = new Date();
   const slug = input.slug?.trim()
     ? input.slug.trim().toLowerCase()
-    : `manual-${randomUUID().slice(0, 8)}`;
+    : `${input.source === "other" ? "other" : "manual"}-${randomUUID().slice(0, 8)}`;
 
   const existing = await db.query.problems.findFirst({
-    where: eq(problems.slug, slug),
+    where: and(eq(problems.source, input.source), eq(problems.slug, slug)),
     columns: { id: true, title: true },
   });
   if (existing) return fail(`${existing.title} is already in your library.`);
@@ -212,6 +239,8 @@ export async function createProblem(
           title: input.title,
           url: input.url,
           difficulty: input.difficulty,
+          source: input.source,
+          tier: input.tier,
           status: "backlog",
           promptSummary: input.promptSummary,
           keyInsight: input.keyInsight,
@@ -293,7 +322,10 @@ export async function markSolved(
   const db = await getDb();
   const parsed = markSolvedSchema.safeParse(raw);
   if (!parsed.success) return fail(firstIssue(parsed.error));
-  const { id, rating, durationSeconds, clientReviewId } = parsed.data;
+  const { id, rating, durationSeconds, clientReviewId, mode } = parsed.data;
+  if (mode === "revise" && rating === 4 && !(await getSettings()).allowEasyInRevise) {
+    return fail("Easy is earned by resolving. Pick Good, or re-solve it.");
+  }
   const now = new Date();
   const settings = await getSettings();
   try {
@@ -305,7 +337,11 @@ export async function markSolved(
       if (!problem) throw new Error("Problem not found");
       if (problem.card && problem.status !== "backlog")
         throw new Error("This problem is already scheduled");
-      return applyFirstSolve(tx, id, rating, now, settings, { clientReviewId, durationSeconds });
+      return applyFirstSolve(tx, id, rating, now, settings, {
+        clientReviewId,
+        durationSeconds,
+        mode,
+      });
     });
     revalidateProblemPaths(id);
     return { ok: true, data: { scheduledDays: result.card.scheduled_days } };
@@ -424,6 +460,36 @@ export async function addTagsToProblems(
     tagIds.data.map((tagId) => ({ problemId, tagId })),
   );
   await db.insert(problemTags).values(values).onConflictDoNothing();
+  revalidateProblemPaths();
+  return { ok: true, data: null };
+}
+
+export async function setTier(rawIds: string[], tier: ProblemTier | null): Promise<ActionResult> {
+  await requireSession();
+  const db = await getDb();
+  const ids = idListSchema.safeParse(rawIds);
+  if (!ids.success) return fail("Nothing selected");
+  if (tier !== null && !["core", "warmup", "skip"].includes(tier)) return fail("Unknown tier");
+  await db
+    .update(problems)
+    .set({ tier, updatedAt: new Date() })
+    .where(inArray(problems.id, ids.data));
+  revalidateProblemPaths();
+  return { ok: true, data: null };
+}
+
+export async function removeTagFromProblems(
+  rawIds: string[],
+  rawTagId: string,
+): Promise<ActionResult> {
+  await requireSession();
+  const db = await getDb();
+  const ids = idListSchema.safeParse(rawIds);
+  const tagId = z.uuid().safeParse(rawTagId);
+  if (!ids.success || !tagId.success) return fail("Nothing selected");
+  await db
+    .delete(problemTags)
+    .where(and(inArray(problemTags.problemId, ids.data), eq(problemTags.tagId, tagId.data)));
   revalidateProblemPaths();
   return { ok: true, data: null };
 }

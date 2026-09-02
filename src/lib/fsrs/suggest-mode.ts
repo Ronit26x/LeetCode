@@ -49,9 +49,14 @@ export function suggestMode(
   const last = graded.at(-1);
   if (last && last.rating === 1) return { mode: "resolve", reason: "Last grade was Again" };
 
-  // (a) The first review after the initial solve, when that solve was a struggle.
-  if (graded.length === 1 && graded[0].mode === "resolve" && graded[0].rating <= 2) {
-    return { mode: "resolve", reason: "First solve was a struggle" };
+  // (a) The first review after the card entered the schedule, when that first rating was Again or
+  // Hard, whether it came from a solve or from "Still remember it".
+  if (graded.length === 1 && graded[0].rating <= 2) {
+    return {
+      mode: "resolve",
+      reason:
+        graded[0].mode === "resolve" ? "First solve was a struggle" : "First recall was shaky",
+    };
   }
 
   // (c) Stability crossed a milestone this card has not been resolved at.

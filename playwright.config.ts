@@ -31,7 +31,9 @@ export default defineConfig({
       env: { PORT: String(STUB_PORT) },
     },
     {
-      command: `rm -rf .pglite-e2e && pnpm exec next dev -p ${PORT}`,
+      command: process.env.E2E_DATABASE_URL
+        ? `pnpm exec next dev -p ${PORT}`
+        : `rm -rf .pglite-e2e && pnpm exec tsx scripts/seed-gfg.ts --file data/seed/gfg-backlog.json && pnpm exec next dev -p ${PORT}`,
       port: PORT,
       reuseExistingServer: false,
       timeout: 120_000,

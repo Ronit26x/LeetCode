@@ -40,6 +40,9 @@ export const tagColorEnum = pgEnum("tag_color", [
   "stone",
 ]);
 export const snippetLanguageEnum = pgEnum("snippet_language", ["cpp", "python", "java", "text"]);
+export const problemSourceEnum = pgEnum("problem_source", ["leetcode", "gfg", "other"]);
+export const solvePrecisionEnum = pgEnum("solve_precision", ["day", "month", "year"]);
+export const problemTierEnum = pgEnum("problem_tier", ["core", "warmup", "skip"]);
 
 export type Difficulty = (typeof difficultyEnum.enumValues)[number];
 export type ProblemStatus = (typeof problemStatusEnum.enumValues)[number];
@@ -47,6 +50,9 @@ export type ReviewMode = (typeof reviewModeEnum.enumValues)[number];
 export type TagKind = (typeof tagKindEnum.enumValues)[number];
 export type TagColor = (typeof tagColorEnum.enumValues)[number];
 export type SnippetLanguage = (typeof snippetLanguageEnum.enumValues)[number];
+export type ProblemSource = (typeof problemSourceEnum.enumValues)[number];
+export type SolvePrecision = (typeof solvePrecisionEnum.enumValues)[number];
+export type ProblemTier = (typeof problemTierEnum.enumValues)[number];
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
@@ -74,11 +80,23 @@ export const problems = pgTable(
     resolveCount: integer("resolve_count").notNull().default(0),
     lastMode: reviewModeEnum("last_mode"),
     firstSolvedAt: timestamp("first_solved_at", { withTimezone: true, mode: "date" }),
+    /** Where the problem lives. Only LeetCode problems have a number and a prefill. */
+    source: problemSourceEnum("source").notNull().default("leetcode"),
+    /** Solved elsewhere before it entered this app. Display and ordering only, never scheduling. */
+    priorSolvedAt: date("prior_solved_at", { mode: "string" }),
+    priorSolvedPrecision: solvePrecisionEnum("prior_solved_precision"),
+    /** core: must code cold; warmup: cheap revise; skip: archived trivia. A starting point, editable. */
+    tier: problemTierEnum("tier"),
+    importBatch: text("import_batch"),
     ...timestamps,
   },
   (t) => [
-    uniqueIndex("problems_slug_idx").on(t.slug),
+    // The same slug can exist on LeetCode and on GeeksforGeeks; they are different problems.
+    uniqueIndex("problems_source_slug_idx").on(t.source, t.slug),
+    index("problems_slug_idx").on(t.slug),
     index("problems_status_idx").on(t.status),
+    index("problems_tier_idx").on(t.tier),
+    index("problems_import_batch_idx").on(t.importBatch),
     index("problems_number_idx").on(t.leetcodeNumber),
     index("problems_title_idx").on(t.title),
   ],
@@ -123,6 +141,8 @@ export const problemTags = pgTable(
     tagId: uuid("tag_id")
       .notNull()
       .references(() => tags.id, { onDelete: "cascade" }),
+    /** Order the tags were given in; the first topic tag is the problem's primary topic. */
+    position: integer("position").notNull().default(0),
   },
   (t) => [
     primaryKey({ columns: [t.problemId, t.tagId] }),

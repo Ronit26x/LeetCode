@@ -19,7 +19,8 @@
     "db:seed": "tsx scripts/seed.mts",
     "icons": "node scripts/icons.mjs",
     "screenshots": "tsx scripts/screenshots.ts",
-    "deploy": "vercel --prod"
+    "deploy": "vercel --prod",
+    "db:seed:gfg": "tsx scripts/seed-gfg.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

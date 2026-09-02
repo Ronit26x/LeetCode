@@ -8,11 +8,14 @@ import {
   type CardRow,
   type Difficulty,
   type Problem,
+  type ProblemSource,
   type ProblemStatus,
+  type ProblemTier,
   type ReviewLogRow,
   type ReviewMode,
   type Settings,
   type Snippet,
+  type SolvePrecision,
   type Tag,
 } from "@/db/schema";
 import { getSettings } from "@/db/bootstrap";
@@ -30,6 +33,8 @@ export interface TagBrief {
   kind: Tag["kind"];
   alwaysResolve: boolean;
   sortOrder: number;
+  /** Position on the problem it was read from; the first topic tag is the primary topic. */
+  position?: number;
 }
 
 export interface CardBrief {
@@ -55,6 +60,11 @@ export interface ProblemListItem {
   resolveCount: number;
   lastMode: ReviewMode | null;
   firstSolvedAt: Date | null;
+  source: ProblemSource;
+  tier: ProblemTier | null;
+  priorSolvedAt: string | null;
+  priorSolvedPrecision: SolvePrecision | null;
+  importBatch: string | null;
   createdAt: Date;
   updatedAt: Date;
   tags: TagBrief[];
@@ -86,13 +96,17 @@ export interface ListFilters {
   difficulty?: Difficulty;
   status?: ProblemStatus | "all";
   memory?: MemoryState;
+  tier?: ProblemTier;
+  source?: ProblemSource;
+  /** Only problems solved elsewhere within the last N days. */
+  recentDays?: number;
   sort?: SortKey;
   dir?: "asc" | "desc";
 }
 
 const DIFF_ORDER: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
 
-function toTagBrief(t: Tag): TagBrief {
+function toTagBrief(t: Tag, position?: number): TagBrief {
   return {
     id: t.id,
     name: t.name,
@@ -100,7 +114,20 @@ function toTagBrief(t: Tag): TagBrief {
     kind: t.kind,
     alwaysResolve: t.alwaysResolve,
     sortOrder: t.sortOrder,
+    position,
   };
+}
+
+/** Tags in the order they were given, then by the tag list order. */
+export function orderTags(list: { tag: Tag; position: number }[]): TagBrief[] {
+  return list
+    .map((pt) => toTagBrief(pt.tag, pt.position))
+    .sort(
+      (a, b) =>
+        (a.position ?? 0) - (b.position ?? 0) ||
+        a.sortOrder - b.sortOrder ||
+        a.name.localeCompare(b.name),
+    );
 }
 
 function toCardBrief(c: CardRow): CardBrief {
@@ -167,16 +194,14 @@ export interface EnrichContext {
 }
 
 export async function enrichProblems(
-  rows: (Problem & { card: CardRow | null; problemTags: { tag: Tag }[] })[],
+  rows: (Problem & { card: CardRow | null; problemTags: { tag: Tag; position: number }[] })[],
   ctx: EnrichContext,
 ): Promise<ProblemListItem[]> {
   const ids = rows.map((r) => r.id);
   const [ratings, logs] = await Promise.all([lastRatings(ids), gradedLogs(ids)]);
   const sched = schedulerForNow(ctx.settings, ctx.now);
   return rows.map((r) => {
-    const tagList = r.problemTags
-      .map((pt) => toTagBrief(pt.tag))
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+    const tagList = orderTags(r.problemTags);
     const card = r.card ? rowToCard(r.card) : null;
     const lastRating = ratings.get(r.id) ?? null;
     let memoryState: MemoryState | null = null;
@@ -194,6 +219,11 @@ export async function enrichProblems(
       resolveCount: r.resolveCount,
       lastMode: r.lastMode,
       firstSolvedAt: r.firstSolvedAt,
+      source: r.source,
+      tier: r.tier,
+      priorSolvedAt: r.priorSolvedAt,
+      priorSolvedPrecision: r.priorSolvedPrecision,
+      importBatch: r.importBatch,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
       tags: tagList,
@@ -231,7 +261,10 @@ export async function enrichProblems(
   });
 }
 
-function matchesQuery(p: Problem & { problemTags: { tag: Tag }[] }, q: string): boolean {
+function matchesQuery(
+  p: Problem & { problemTags: { tag: Tag; position: number }[] },
+  q: string,
+): boolean {
   const needle = q.trim().toLowerCase();
   if (!needle) return true;
   const asNumber = Number.parseInt(needle, 10);
@@ -255,9 +288,22 @@ export async function listProblems(
     where: status === "all" ? undefined : eq(problems.status, status),
     with: { card: true, problemTags: { with: { tag: true } } },
   });
+  const recentSince = filters.recentDays
+    ? new Date(now.getTime() - filters.recentDays * 86_400_000)
+    : null;
   const filtered = rows.filter((r) => {
     if (filters.difficulty && r.difficulty !== filters.difficulty) return false;
     if (filters.tagId && !r.problemTags.some((pt) => pt.tag.id === filters.tagId)) return false;
+    if (filters.tier && r.tier !== filters.tier) return false;
+    if (filters.source && r.source !== filters.source) return false;
+    if (
+      recentSince &&
+      !(
+        r.priorSolvedAt &&
+        new Date(r.priorSolvedAt + "T12:00:00Z").getTime() >= recentSince.getTime() - 43_200_000
+      )
+    )
+      return false;
     if (filters.q && !matchesQuery(r, filters.q)) return false;
     return true;
   });
@@ -367,6 +413,51 @@ export async function getProblem(id: string, now = new Date()): Promise<ProblemD
       suggestion: item.suggestion,
     },
   };
+}
+
+export interface TopicCoverage {
+  id: string;
+  name: string;
+  color: Tag["color"];
+  core: number;
+  warmup: number;
+  /** Core or warmup problems with this primary topic that already have a card. */
+  scheduled: number;
+}
+
+/**
+ * Per primary topic (first topic-kind tag by position): how many core and warmup problems exist
+ * outside the archive, and how many of those have entered the schedule. Shows where the imported
+ * list is thin.
+ */
+export async function backlogCoverage(): Promise<TopicCoverage[]> {
+  const db = await getDb();
+  const rows = await db.query.problems.findMany({
+    where: sql`${problems.status} <> 'archived' and ${problems.tier} in ('core', 'warmup')`,
+    columns: { id: true, tier: true, status: true },
+    with: { card: { columns: { problemId: true } }, problemTags: { with: { tag: true } } },
+  });
+  const agg = new Map<string, TopicCoverage>();
+  for (const r of rows) {
+    const ordered = orderTags(r.problemTags);
+    const primary = ordered.find((t) => t.kind === "topic") ?? ordered[0];
+    if (!primary) continue;
+    const c = agg.get(primary.id) ?? {
+      id: primary.id,
+      name: primary.name,
+      color: primary.color,
+      core: 0,
+      warmup: 0,
+      scheduled: 0,
+    };
+    if (r.tier === "core") c.core++;
+    else if (r.tier === "warmup") c.warmup++;
+    if (r.card) c.scheduled++;
+    agg.set(primary.id, c);
+  }
+  return [...agg.values()].sort(
+    (a, b) => b.core + b.warmup - (a.core + a.warmup) || a.name.localeCompare(b.name),
+  );
 }
 
 export async function listTags(): Promise<TagBrief[]> {

@@ -25,7 +25,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DifficultyBadge, MemoryBadge, ModeBadge, TagBadge } from "@/components/common/badges";
+import {
+  DifficultyBadge,
+  MemoryBadge,
+  ModeBadge,
+  SourceBadge,
+  TagBadge,
+} from "@/components/common/badges";
 import { formatDate, formatDueRelative, formatPercent, formatStability } from "@/lib/format";
 import {
   addTagsToProblems,
@@ -219,12 +225,15 @@ export function ProblemsTable({
                 </td>
                 <td className="pr-2 text-right text-fg-subtle">{p.leetcodeNumber ?? ""}</td>
                 <td className="max-w-0 pr-3">
-                  <Link
-                    href={`/problems/${p.id}`}
-                    className="block truncate font-medium text-foreground underline-offset-2 hover:underline"
-                  >
-                    {p.title}
-                  </Link>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <Link
+                      href={`/problems/${p.id}`}
+                      className="block truncate font-medium text-foreground underline-offset-2 hover:underline"
+                    >
+                      {p.title}
+                    </Link>
+                    <SourceBadge source={p.source} />
+                  </span>
                 </td>
                 <td>
                   <DifficultyBadge difficulty={p.difficulty} plain />
@@ -295,6 +304,7 @@ export function ProblemsTable({
                     <span className="text-2xs text-fg-subtle">{p.leetcodeNumber}</span>
                   ) : null}
                   <span className="truncate text-sm font-medium">{p.title}</span>
+                  <SourceBadge source={p.source} />
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
                   <DifficultyBadge difficulty={p.difficulty} plain />

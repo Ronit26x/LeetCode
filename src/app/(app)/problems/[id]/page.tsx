@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowSquareOut } from "@phosphor-icons/react/dist/ssr";
 import { getProblem, listTags } from "@/lib/problems/queries";
 import { getSettings } from "@/db/bootstrap";
+import { solvedAgoLabel } from "@/lib/backlog";
 import { ProblemDetailShell } from "@/components/problems/problem-detail-shell";
 import { CardFront } from "@/components/review/card-front";
 import { CardBack } from "@/components/review/card-back";
@@ -10,8 +11,10 @@ import {
   DifficultyBadge,
   MemoryBadge,
   ModeBadge,
+  SourceBadge,
   StatusBadge,
   TagBadge,
+  TierBadge,
 } from "@/components/common/badges";
 import { MemoryPanel } from "@/components/problems/memory-panel";
 import { ReviewHistory } from "@/components/problems/review-history";
@@ -37,6 +40,7 @@ export default async function ProblemPage({ params }: { params: Promise<{ id: st
     slug: p.slug,
     title: p.title,
     url: p.url ?? "",
+    source: p.source,
     difficulty: p.difficulty,
     promptSummary: p.promptSummary,
     keyInsight: p.keyInsight,
@@ -60,7 +64,9 @@ export default async function ProblemPage({ params }: { params: Promise<{ id: st
     <>
       <div className="flex flex-wrap items-center gap-2 text-2xs text-fg-muted">
         {p.leetcodeNumber ? <span>{p.leetcodeNumber}</span> : null}
+        <SourceBadge source={p.source} />
         <DifficultyBadge difficulty={p.difficulty} plain />
+        <TierBadge tier={p.tier} />
         <StatusBadge status={p.status} />
         {p.status === "active" ? <MemoryBadge state={p.computed.memoryState} /> : null}
         {p.computed.suggestion ? <ModeBadge mode={p.computed.suggestion.mode} /> : null}
@@ -71,7 +77,8 @@ export default async function ProblemPage({ params }: { params: Promise<{ id: st
             rel="noreferrer"
             className="inline-flex items-center gap-1 hover:text-foreground"
           >
-            LeetCode <ArrowSquareOut size={12} />
+            {p.source === "gfg" ? "GeeksforGeeks" : p.source === "other" ? "Open" : "LeetCode"}{" "}
+            <ArrowSquareOut size={12} />
           </a>
         ) : null}
       </div>
@@ -82,6 +89,14 @@ export default async function ProblemPage({ params }: { params: Promise<{ id: st
             <TagBadge key={t.id} name={t.name} color={t.color} />
           ))}
         </div>
+      ) : null}
+      {p.priorSolvedAt ? (
+        <p className="mt-2 text-2xs text-fg-muted">
+          solved on{" "}
+          {p.source === "gfg" ? "GFG" : p.source === "leetcode" ? "LeetCode" : "another source"}{" "}
+          {solvedAgoLabel(p.priorSolvedAt, p.priorSolvedPrecision, new Date())}, before it entered
+          Recur
+        </p>
       ) : null}
     </>
   );
@@ -116,6 +131,7 @@ export default async function ProblemPage({ params }: { params: Promise<{ id: st
             data={{
               title: p.title,
               leetcodeNumber: p.leetcodeNumber,
+              source: p.source,
               difficulty: p.difficulty,
               url: p.url,
               promptSummary: p.promptSummary,

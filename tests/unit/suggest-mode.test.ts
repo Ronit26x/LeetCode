@@ -27,6 +27,18 @@ describe("suggestMode", () => {
     ).toBe("resolve");
   });
 
+  it("suggests Resolve after a shaky first recall entered through Still remember it", () => {
+    expect(
+      suggestMode({ stability: 2, state: 2 }, [log("revise", 2)], problem(), settings),
+    ).toMatchObject({
+      mode: "resolve",
+      reason: "First recall was shaky",
+    });
+    expect(
+      suggestMode({ stability: 3, state: 2 }, [log("revise", 3)], problem(), settings).mode,
+    ).toBe("revise");
+  });
+
   it("suggests Revise after a clean first solve", () => {
     expect(
       suggestMode({ stability: 3, state: 2 }, [log("resolve", 3)], problem(), settings).mode,

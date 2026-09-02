@@ -132,11 +132,23 @@ retention, with fuzz off so it is idempotent. Inside the last 7 days Today gains
 not-yet-due cards sorted by lowest predicted interview-day recall, kept separate so the model's
 schedule is never silently overridden. After the date passes, all of this switches off.
 
+## Importing solved history
+
+`pnpm db:seed:gfg --dry-run` reads `data/seed/gfg-backlog.json` (334 GeeksforGeeks solves, parsed
+on 2026-09-02) and reports what would change; without the flag it upserts by (source, slug): core
+and warmup rows into the backlog, skip rows as archived, tags attached in order, related problems
+linked both ways. It is idempotent, fills only empty history fields on re-run, and never creates
+cards or review logs. The backlog orders core before warmup and stalest prior solve first, shows
+"solved on GFG about 8 months ago" only as precisely as the source allowed, and offers two doors
+into the schedule: "Solved it again" (a resolve) and "Still remember it" (a revise with Easy
+refused). The coverage strip shows core / warmup counts and how many are scheduled per topic.
+
 ## Adding a problem
 
-Paste a LeetCode URL or slug. A server action asks LeetCode's GraphQL endpoint for the number,
-title, difficulty and topics (four-second timeout, then manual entry) and maps topics onto your
-tags. Then: the front (your restatement), the back (key insight, approach, complexity, pitfalls),
+Paste any problem URL. LeetCode links are prefilled from LeetCode's GraphQL endpoint (number,
+title, difficulty, topics; four-second timeout, then manual entry) with topics mapped onto your
+tags. GeeksforGeeks links set the source and slug with no prefill; any other link is kept as
+"other". Non-LeetCode problems show a small source mark instead of a number. Then: the front (your restatement), the back (key insight, approach, complexity, pitfalls),
 code snippets in CodeMirror (stored byte for byte, tabs included), tags, similar problems, and
 extended notes. "Solved it today" asks how the solve went and schedules the first review;
 "Add to backlog" queues it unscheduled. Cmd+Enter saves.
@@ -151,6 +163,7 @@ extended notes. "Solved it today" asks how the solve went and schedules the firs
 | `pnpm test:e2e` | Playwright smoke: sign in, add from a URL (stubbed LeetCode), solve, review, grade, undo, theme persistence, tab-safe copy |
 | `pnpm db:generate` / `pnpm db:migrate` / `pnpm db:studio` | drizzle-kit |
 | `pnpm db:seed` | Sample data, local databases only |
+| `pnpm db:seed:gfg [--dry-run]` | Import the GeeksforGeeks solved list from `data/seed/gfg-backlog.json` (idempotent) |
 | `pnpm screenshots` | Every screen in Light, Dim and Dark at desktop and phone widths |
 | `pnpm deploy` | `vercel --prod` |
 

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { DifficultyBadge, ModeBadge, TagBadge } from "@/components/common/badges";
+import { DifficultyBadge, ModeBadge, SourceBadge, TagBadge } from "@/components/common/badges";
 import { formatDate, formatPercent } from "@/lib/format";
 import type { ProblemListItem } from "@/lib/problems/queries";
 import { cn } from "@/lib/utils";
@@ -45,6 +45,7 @@ export function QueueList({
                       </span>
                     ) : null}
                     <span className="truncate text-sm font-medium">{p.title}</span>
+                    <SourceBadge source={p.source} />
                     <DifficultyBadge difficulty={p.difficulty} plain />
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5 pl-0 sm:pl-11">

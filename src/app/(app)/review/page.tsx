@@ -87,6 +87,7 @@ export default async function ReviewPage({
     slug: p.slug,
     title: p.title,
     url: p.url ?? "",
+    source: p.source,
     difficulty: p.difficulty,
     promptSummary: p.promptSummary,
     keyInsight: p.keyInsight,
@@ -128,6 +129,7 @@ export default async function ReviewPage({
           data={{
             title: p.title,
             leetcodeNumber: p.leetcodeNumber,
+            source: p.source,
             difficulty: p.difficulty,
             url: p.url,
             promptSummary: p.promptSummary,

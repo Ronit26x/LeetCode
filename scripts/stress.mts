@@ -16,7 +16,9 @@ await ensureDefaults();
 const settings = await getSettings();
 async function guarded<T>(name: string, fn: () => Promise<T>): Promise<T> {
   const t0 = Date.now();
-  const timer = new Promise<never>((_, rej) => setTimeout(() => rej(new Error(`HANG in "${name}"`)), 25_000));
+  const timer = new Promise<never>((_, rej) =>
+    setTimeout(() => rej(new Error(`HANG in "${name}"`)), 25_000),
+  );
   const out = await Promise.race([fn(), timer]);
   const ms = Date.now() - t0;
   if (ms > 3000) console.log(`  slow: ${name} ${ms}ms`);
@@ -24,17 +26,44 @@ async function guarded<T>(name: string, fn: () => Promise<T>): Promise<T> {
 }
 for (let i = 0; i < N; i++) {
   const slug = `stress-${randomUUID().slice(0, 8)}`;
-  const [p] = await guarded("insert", () => db.insert(problems).values({ slug, title: "Stress", difficulty: "medium" }).returning());
+  const [p] = await guarded("insert", () =>
+    db.insert(problems).values({ slug, title: "Stress", difficulty: "medium" }).returning(),
+  );
   const now = new Date();
-  await guarded("first solve", () => db.transaction((tx) => applyFirstSolve(tx, p.id, 3, now, settings)));
-  await guarded("render problem page", () => Promise.all([getProblem(p.id), listTags(), getSettings()]));
-  await guarded("render session", () => Promise.all([getTodayQueue(new Date()), getProblem(p.id), listTags()]));
+  await guarded("first solve", () =>
+    db.transaction((tx) => applyFirstSolve(tx, p.id, 3, now, settings)),
+  );
+  await guarded("render problem page", () =>
+    Promise.all([getProblem(p.id), listTags(), getSettings()]),
+  );
+  await guarded("render session", () =>
+    Promise.all([getTodayQueue(new Date()), getProblem(p.id), listTags()]),
+  );
   const later = new Date(now.getTime() + 2 * 86_400_000);
   await guarded("preview", () => previewFor(db, settings, p.id, later));
-  const g = await guarded("grade", () => applyGrade(db, settings, { problemId: p.id, clientReviewId: randomUUID(), rating: 3, mode: "revise", durationSeconds: null, note: null, appendNoteToPitfalls: false }, later));
-  await guarded("render after grade", () => Promise.all([getProblem(p.id), listTags(), listProblems({})]));
+  const g = await guarded("grade", () =>
+    applyGrade(
+      db,
+      settings,
+      {
+        problemId: p.id,
+        clientReviewId: randomUUID(),
+        rating: 3,
+        mode: "revise",
+        durationSeconds: null,
+        note: null,
+        appendNoteToPitfalls: false,
+      },
+      later,
+    ),
+  );
+  await guarded("render after grade", () =>
+    Promise.all([getProblem(p.id), listTags(), listProblems({})]),
+  );
   await guarded("undo", () => applyUndo(db, settings, g.logId, new Date(later.getTime() + 1000)));
-  await guarded("render after undo", () => Promise.all([getProblem(p.id), listTags(), getTodayQueue(new Date())]));
+  await guarded("render after undo", () =>
+    Promise.all([getProblem(p.id), listTags(), getTodayQueue(new Date())]),
+  );
   await guarded("delete", () => db.delete(problems).where(eq(problems.id, p.id)));
   console.log(`iteration ${i + 1} ok`);
 }

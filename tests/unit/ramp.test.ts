@@ -51,9 +51,15 @@ describe("retention ramp pass", () => {
 
   it("does nothing outside the window or after the interview", async () => {
     const { applyRetentionRamp } = await import("@/lib/queue/build");
-    await db.update(settings).set({ interviewDate: "2026-12-01", lastRampAppliedDay: null }).where(eq(settings.id, 1));
+    await db
+      .update(settings)
+      .set({ interviewDate: "2026-12-01", lastRampAppliedDay: null })
+      .where(eq(settings.id, 1));
     expect(await applyRetentionRamp(await getSettings(), new Date("2026-09-25T17:00:00Z"))).toBe(0);
-    await db.update(settings).set({ interviewDate: "2026-09-01", lastRampAppliedDay: null }).where(eq(settings.id, 1));
+    await db
+      .update(settings)
+      .set({ interviewDate: "2026-09-01", lastRampAppliedDay: null })
+      .where(eq(settings.id, 1));
     expect(await applyRetentionRamp(await getSettings(), new Date("2026-09-25T17:00:00Z"))).toBe(0);
   });
 });

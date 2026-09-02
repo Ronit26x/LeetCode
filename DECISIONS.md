@@ -108,3 +108,25 @@ the transaction pooler completes it in about one second. So the app uses `drizzl
 on the transaction pooler (unnamed statements, so no prepared-statement setting is needed) with a
 30-second client-side `query_timeout` as a guard, and drizzle-kit keeps the session pooler.
 Everything else in the data layer is unchanged; the unit tests still run on PGlite.
+
+## GFG import: history is display, never memory
+
+The 334 GeeksforGeeks solves come in with `prior_solved_at` and its precision, a tier, and an
+import batch. None of that touches FSRS: no card, no log, nothing due. A problem enters the
+schedule only when it is rated in the app, through one of two doors from the backlog: "Solved it
+again" (first rating logged as resolve #1) or "Still remember it" (first rating logged as revise #1,
+Easy refused). A shaky first rating from either door suggests Resolve at the next review. Backdating
+would have put hundreds of overdue cards in Today and taught the scheduler nothing true.
+
+## Slugs are unique per source
+
+The GFG list contains `lru-cache`, `topological-sort` and other slugs that also exist on LeetCode.
+They are different problems, so the unique index is (source, slug) and export/import, the seed and
+the add-flow duplicate check all key by source plus slug. Tag order is stored (`problem_tags.position`)
+so the first tag of an imported row is its primary topic for interleaving and coverage.
+
+## Tiers are the user's starting point
+
+`core`, `warmup` and `skip` came from the file and are editable in bulk. The seed never overwrites a
+tier, a title, tags, notes or a status on re-run; it only fills empty history fields. Un-archiving a
+skip row simply drops it into the backlog, since it has no card.

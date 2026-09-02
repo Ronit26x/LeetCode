@@ -61,7 +61,7 @@ async function capture(browser: Browser, authed: boolean, list: string[]) {
         await page.evaluate(() => document.fonts.ready);
         await page.waitForTimeout(150);
         const file = `screenshots/${theme}-${vpName}-${slugOf(p)}.png`;
-        await page.screenshot({ path: file, fullPage: true });
+        await page.screenshot({ path: file, fullPage: process.env.SHOT_VIEWPORT !== "1" });
         console.log("wrote", file);
       }
       await page.close();

@@ -28,7 +28,7 @@ test("add from a URL, solve, review early, grade, undo, and copy code with tabs"
 
   const slug = `two-sum-${browserName}-${Date.now().toString(36)}`;
   await page.goto("/problems/new");
-  await page.getByLabel("LeetCode URL or slug").fill(`https://leetcode.com/problems/${slug}/`);
+  await page.getByLabel(/Problem URL/).fill(`https://leetcode.com/problems/${slug}/`);
   await page.getByRole("button", { name: "Prefill" }).click();
   await expect(page.getByLabel("Title")).toHaveValue(/Two Sum/);
   await expect(page.getByLabel("Number")).toHaveValue("1");
@@ -121,4 +121,53 @@ test("add from a URL, solve, review early, grade, undo, and copy code with tabs"
   await page.getByRole("button", { name: "Delete" }).click();
   await page.waitForURL(/\/problems$/);
   await expect(page.getByText("Deleted")).toBeVisible();
+});
+
+test("backlog: the recent-solves filter and the Still remember it path create a card only at the rating", async ({
+  page,
+}) => {
+  test.skip(!!process.env.E2E_DATABASE_URL, "Seeds the GFG list; local PGlite only");
+  await login(page);
+  await page.goto("/backlog?recent=14");
+  // The desktop and phone projects share one database, so count relative to what is shown now.
+  const shownText = (await page.getByText(/^\d+ shown$/).textContent()) ?? "0 shown";
+  const shown = Number.parseInt(shownText, 10);
+  expect(shown).toBeGreaterThanOrEqual(32);
+  await expect(page.getByText(/solved on GFG \d+ days ago/).first()).toBeVisible();
+
+  // Any recent problem still waiting: grade recall without re-coding.
+  const row = page
+    .locator("li", { has: page.getByRole("button", { name: "Still remember it" }) })
+    .first();
+  const link = row.getByRole("link").first();
+  const title = (await link.textContent())?.trim() ?? "";
+  const href = await link.getAttribute("href");
+  expect(href).toMatch(/\/problems\/[0-9a-f-]{36}$/);
+  await row.getByRole("button", { name: "Still remember it" }).click();
+  await expect(page.getByRole("button", { name: /^Easy/ })).toBeDisabled();
+  await page.getByRole("button", { name: /^Good/ }).click();
+  await expect(page.getByText(/Scheduled\. Next review in/)).toBeVisible();
+
+  // One fewer in the recent filter; scheduled in the library with the history intact.
+  await page.goto("/backlog?recent=14");
+  await expect(page.getByText(`${shown - 1} shown`)).toBeVisible();
+  await page.goto(href!);
+  await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
+  await expect(
+    page
+      .locator("dt", { hasText: /^Revised$/ })
+      .locator("xpath=following-sibling::dd")
+      .first(),
+  ).toHaveText("1");
+  await expect(
+    page
+      .locator("dt", { hasText: /^Resolved$/ })
+      .locator("xpath=following-sibling::dd")
+      .first(),
+  ).toHaveText("0");
+  await expect(
+    page.locator("dt", { hasText: /^Due$/ }).locator("xpath=following-sibling::dd").first(),
+  ).toContainText(/in \d+d|tomorrow/);
+  await expect(page.getByText(/solved on GFG \d+ days ago/)).toBeVisible();
+  await expect(page.getByText("GFG", { exact: true }).first()).toBeVisible();
 });

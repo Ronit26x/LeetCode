@@ -149,3 +149,34 @@ export function mapTopicTags(
   }
   return { matched: [...matched.values()], unmatched };
 }
+
+export type ParsedProblemUrl =
+  | { source: "leetcode"; slug: string; url: string }
+  | { source: "gfg"; slug: string; url: string }
+  | { source: "other"; slug: null; url: string };
+
+const GFG_URL =
+  /^(?:https?:\/\/)?(?:www\.|practice\.)?geeksforgeeks\.org\/problems\/([a-z0-9-]+)(?:[/?#].*)?$/i;
+
+/**
+ * Any URL is accepted. LeetCode keeps the GraphQL prefill; GeeksforGeeks gets its slug from the
+ * URL with no prefill; anything else is stored as "other" with a generated slug.
+ */
+export function parseProblemUrl(input: string): ParsedProblemUrl | null {
+  const s = input.trim();
+  if (!s) return null;
+  const lc = parseLeetCodeInput(s);
+  if (lc && (LC_URL.test(s) || !/^https?:\/\//i.test(s))) return { source: "leetcode", ...lc };
+  const gfg = s.match(GFG_URL);
+  if (gfg) {
+    const slug = gfg[1].toLowerCase();
+    return { source: "gfg", slug, url: `https://www.geeksforgeeks.org/problems/${slug}/0` };
+  }
+  try {
+    const u = new URL(/^https?:\/\//i.test(s) ? s : `https://${s}`);
+    if (!u.hostname.includes(".")) return null;
+    return { source: "other", slug: null, url: u.toString() };
+  } catch {
+    return null;
+  }
+}

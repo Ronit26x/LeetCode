@@ -20,6 +20,9 @@ export const tagColorSchema = z.enum([
   "stone",
 ]);
 export const gradeSchema = z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]);
+export const problemSourceSchema = z.enum(["leetcode", "gfg", "other"]);
+export const problemTierSchema = z.enum(["core", "warmup", "skip"]);
+export const solvePrecisionSchema = z.enum(["day", "month", "year"]);
 
 const text = (max: number) => z.string().max(max).default("");
 
@@ -41,6 +44,8 @@ export const problemInputSchema = z.object({
     .default("")
     .transform((v) => v || null),
   difficulty: difficultySchema.default("medium"),
+  source: problemSourceSchema.default("leetcode"),
+  tier: problemTierSchema.nullable().default(null),
   promptSummary: text(4_000),
   keyInsight: text(4_000),
   approach: text(20_000),
@@ -74,6 +79,8 @@ export type UpdateProblemInput = z.input<typeof updateProblemSchema>;
 export const markSolvedSchema = z.object({
   id: z.uuid(),
   rating: gradeSchema,
+  /** resolve: "Solved it (again)". revise: "Still remember it" (Easy is refused by the revise rule). */
+  mode: reviewModeSchema.default("resolve"),
   durationSeconds: z.number().int().min(0).max(86_400).nullable().default(null),
   clientReviewId: z.uuid().optional(),
 });
@@ -181,6 +188,11 @@ export const exportSchema = z.object({
       resolveCount: z.number().int().min(0).default(0),
       lastMode: reviewModeSchema.nullable().default(null),
       firstSolvedAt: z.string().nullable().default(null),
+      source: problemSourceSchema.default("leetcode"),
+      tier: problemTierSchema.nullable().default(null),
+      priorSolvedAt: z.string().nullable().default(null),
+      priorSolvedPrecision: solvePrecisionSchema.nullable().default(null),
+      importBatch: z.string().nullable().default(null),
       createdAt: z.string().optional(),
       tags: z.array(z.string()).default([]),
       related: z.array(z.string()).default([]),

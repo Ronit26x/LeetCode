@@ -24,12 +24,12 @@ import { NotesEditor } from "@/components/notes/notes-editor";
 import { RatingButtons, type RatingValue } from "@/components/review/rating-buttons";
 import {
   createProblem,
-  prefillFromLeetCode,
+  prefillFromUrl,
   updateProblem,
   type PrefillResult,
 } from "@/lib/problems/actions";
 import type { ProblemBrief, TagBrief } from "@/lib/problems/queries";
-import type { Difficulty } from "@/db/schema";
+import type { Difficulty, ProblemSource } from "@/db/schema";
 import { cn } from "@/lib/utils";
 
 export interface ProblemFormValues {
@@ -37,6 +37,7 @@ export interface ProblemFormValues {
   slug: string | null;
   title: string;
   url: string;
+  source: ProblemSource;
   difficulty: Difficulty;
   promptSummary: string;
   keyInsight: string;
@@ -57,6 +58,7 @@ export function emptyValues(): ProblemFormValues {
     slug: null,
     title: "",
     url: "",
+    source: "leetcode",
     difficulty: "medium",
     promptSummary: "",
     keyInsight: "",
@@ -150,7 +152,7 @@ export function ProblemForm({
     if (!lookup.trim()) return;
     setLooking(true);
     setPrefillError(null);
-    const res = await prefillFromLeetCode(lookup);
+    const res = await prefillFromUrl(lookup);
     setLooking(false);
     if (!res.ok) {
       setPrefillError(res.error);
@@ -169,13 +171,15 @@ export function ProblemForm({
     setSuggested(d.suggestedNewTags);
     setV((prev) => ({
       ...prev,
-      leetcodeNumber: d.number,
+      source: d.source,
       slug: d.slug,
-      title: d.title,
       url: d.url,
-      difficulty: d.difficulty,
+      leetcodeNumber: d.number ?? (d.source === "leetcode" ? prev.leetcodeNumber : null),
+      title: d.title || prev.title,
+      difficulty: d.difficulty ?? prev.difficulty,
       tagIds: [...new Set([...prev.tagIds, ...d.matchedTagIds])],
     }));
+    if (!d.prefilled) titleRef.current?.focus();
   }
 
   function payload() {
@@ -184,6 +188,7 @@ export function ProblemForm({
       slug: v.slug,
       title: v.title,
       url: v.url,
+      source: v.source,
       difficulty: v.difficulty,
       promptSummary: v.promptSummary,
       keyInsight: v.keyInsight,
@@ -273,7 +278,7 @@ export function ProblemForm({
       {mode === "create" ? (
         <div className="flex flex-col gap-2">
           <label htmlFor="lookup" className="text-md font-medium">
-            LeetCode URL or slug
+            Problem URL, or a LeetCode slug
           </label>
           <div className="flex gap-2">
             <input
@@ -309,8 +314,12 @@ export function ProblemForm({
             </p>
           ) : prefill ? (
             <p className="text-2xs text-fg-muted">
-              Prefilled {prefill.number ? `${prefill.number}. ` : ""}
-              {prefill.title}.
+              Prefilled{" "}
+              {prefill.prefilled
+                ? `Prefilled ${prefill.number ? `${prefill.number}. ` : ""}${prefill.title}.`
+                : prefill.source === "gfg"
+                  ? `GeeksforGeeks problem ${prefill.slug}. No prefill for GFG; fill in the title and difficulty.`
+                  : "Saved as another source. Fill in the title and difficulty."}
               {prefill.existingProblemId ? (
                 <>
                   {" "}
@@ -327,27 +336,39 @@ export function ProblemForm({
             </p>
           ) : (
             <p className="text-2xs text-fg-subtle">
-              Fetches the number, title, difficulty and topics. Falls back to manual entry if
-              LeetCode does not answer within a few seconds.
+              LeetCode links are prefilled (number, title, difficulty, topics). GeeksforGeeks links
+              set the source and slug; any other link is kept as is. Manual entry always works.
             </p>
           )}
         </div>
       ) : null}
 
       <div className="grid grid-cols-[6rem_1fr] gap-3 sm:grid-cols-[6rem_1fr_9rem]">
-        <Field label="Number" htmlFor="number">
-          <input
-            id="number"
-            inputMode="numeric"
-            value={v.leetcodeNumber ?? ""}
-            onChange={(e) =>
-              set(
-                "leetcodeNumber",
-                e.target.value ? Number.parseInt(e.target.value, 10) || null : null,
-              )
-            }
-            className={inputClass}
-          />
+        <Field label={v.source === "leetcode" ? "Number" : "Source"} htmlFor="number">
+          {v.source === "leetcode" ? (
+            <input
+              id="number"
+              inputMode="numeric"
+              value={v.leetcodeNumber ?? ""}
+              onChange={(e) =>
+                set(
+                  "leetcodeNumber",
+                  e.target.value ? Number.parseInt(e.target.value, 10) || null : null,
+                )
+              }
+              className={inputClass}
+            />
+          ) : (
+            <NativeSelect
+              id="number"
+              value={v.source}
+              onChange={(e) => set("source", e.target.value as ProblemSource)}
+            >
+              <option value="gfg">GFG</option>
+              <option value="other">Other</option>
+              <option value="leetcode">LeetCode</option>
+            </NativeSelect>
+          )}
         </Field>
         <Field label="Title" htmlFor="title">
           <input
@@ -391,7 +412,7 @@ export function ProblemForm({
           id="url"
           value={v.url}
           onChange={(e) => set("url", e.target.value)}
-          placeholder="https://leetcode.com/problems/…"
+          placeholder="https://…"
           className={cn(inputClass, "font-mono text-md")}
           spellCheck={false}
         />
