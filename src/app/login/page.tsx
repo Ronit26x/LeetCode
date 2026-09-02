@@ -1,12 +1,27 @@
 import type { Metadata } from "next";
-import { GithubLogo } from "@phosphor-icons/react/dist/ssr";
+import { GithubLogo, Prohibit } from "@phosphor-icons/react/dist/ssr";
+import { signIn, TEST_LOGIN } from "@/auth";
 import { Wordmark } from "@/components/common/mark";
 import { Button } from "@/components/ui/button";
 import { ThemeSwitch } from "@/components/theme/theme-switch";
 
 export const metadata: Metadata = { title: "Sign in" };
 
-export default function LoginPage() {
+const ERROR_TEXT: Record<string, string> = {
+  AccessDenied: "That GitHub account is not allowed here. Sign in with the account this instance is bound to.",
+  Configuration: "Sign-in is not configured. Check the GitHub OAuth environment variables.",
+  OAuthCallbackError: "GitHub did not complete the sign-in. Try again.",
+};
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; next?: string }>;
+}) {
+  const { error, next } = await searchParams;
+  const redirectTo = next && next.startsWith("/") ? next : "/today";
+  const message = error ? (ERROR_TEXT[error] ?? "Sign-in failed. Try again.") : null;
+
   return (
     <div className="flex min-h-dvh flex-col">
       <div className="flex h-12 items-center justify-end px-4">
@@ -19,10 +34,38 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-fg-muted">
             One account owns this instance. Sign in with the GitHub login it is bound to.
           </p>
-          <Button size="lg" className="mt-6 w-full" disabled>
-            <GithubLogo size={18} />
-            Continue with GitHub
-          </Button>
+          {message ? (
+            <p
+              role="alert"
+              className="mt-4 flex items-start gap-2 rounded-md border border-again/30 bg-again/8 px-3 py-2 text-md text-foreground"
+            >
+              <Prohibit size={16} className="mt-0.5 shrink-0 text-again" />
+              <span>{message}</span>
+            </p>
+          ) : null}
+          <form
+            action={async () => {
+              "use server";
+              await signIn("github", { redirectTo });
+            }}
+          >
+            <Button size="lg" className="mt-6 w-full" type="submit">
+              <GithubLogo size={18} />
+              Continue with GitHub
+            </Button>
+          </form>
+          {TEST_LOGIN ? (
+            <form
+              action={async () => {
+                "use server";
+                await signIn("test", { redirectTo });
+              }}
+            >
+              <Button size="lg" variant="outline" className="mt-2 w-full" type="submit">
+                Test sign in as {TEST_LOGIN}
+              </Button>
+            </form>
+          ) : null}
         </div>
       </main>
     </div>
