@@ -8,8 +8,8 @@ the algorithm, the modes, the day boundary and deployment.
 
 Next.js 16 (App Router, Server Actions, `src/proxy.ts` instead of middleware), React 19,
 TypeScript strict, Tailwind v4, shadcn (Base UI preset) restyled through tokens, Phosphor icons,
-next-themes (light/dim/dark + system via `data-theme`), Drizzle + postgres.js on Supabase (PGlite
-opt-in for tests and offline dev), Auth.js v5 with GitHub and a server-side allowlist, ts-fsrs 5
+next-themes (light/dim/dark + system via `data-theme`), Drizzle + node-postgres on Supabase (PGlite
+opt-in for tests and offline dev; postgres.js hangs on the transaction pooler, see DECISIONS.md), Auth.js v5 with GitHub and a server-side allowlist, ts-fsrs 5
 (FSRS-6), CodeMirror 6 + Shiki, Vitest + Playwright, pnpm.
 
 ## Commands

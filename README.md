@@ -22,7 +22,7 @@ pnpm dev                          # http://localhost:3000
 
 | Variable | Where it comes from |
 | --- | --- |
-| `DATABASE_URL` | Supabase transaction pooler (port 6543); the app uses `prepare: false` |
+| `DATABASE_URL` | Supabase transaction pooler (port 6543), through node-postgres |
 | `DIRECT_URL` | Supabase session pooler (port 5432); used by drizzle-kit |
 | `AUTH_SECRET` | `openssl rand -base64 32` |
 | `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` | A GitHub OAuth app whose callback is `http://localhost:3000/api/auth/callback/github` |

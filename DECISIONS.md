@@ -96,3 +96,15 @@ transaction change.
 Values added with `vercel env add` are stored as sensitive, so `vercel env pull` writes them back
 empty. The runtime sees them (the cron route verified it); local development keeps its own
 `.env.local`. The README says so instead of promising a working pull.
+
+## Driver: node-postgres, not postgres.js
+
+The brief asked for postgres.js on the Supavisor transaction pooler. Against the real project that
+combination hangs: any burst of concurrent queries (24 in flight, even on a pool of one connection,
+even with pipelining disabled) never gets its responses back, Postgres shows every backend idle,
+and the request holds until the client gives up. Reproduced deterministically with a 30-line
+script; the same load through the session pooler completes in half a second, and node-postgres on
+the transaction pooler completes it in about one second. So the app uses `drizzle-orm/node-postgres`
+on the transaction pooler (unnamed statements, so no prepared-statement setting is needed) with a
+30-second client-side `query_timeout` as a guard, and drizzle-kit keeps the session pooler.
+Everything else in the data layer is unchanged; the unit tests still run on PGlite.

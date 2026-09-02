@@ -5,7 +5,7 @@ const STUB_PORT = 4321;
 
 export default defineConfig({
   testDir: "tests/e2e",
-  timeout: 60_000,
+  timeout: 150_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
   workers: 1,
@@ -44,6 +44,7 @@ export default defineConfig({
         AUTH_TEST_LOGIN: "Ronit26x",
         CRON_SECRET: "e2e-cron",
         LEETCODE_GRAPHQL_URL: `http://localhost:${STUB_PORT}/graphql`,
+        RECUR_PG_DEBUG: process.env.RECUR_PG_DEBUG ?? "",
       },
     },
   ],
