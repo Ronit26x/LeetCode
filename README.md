@@ -43,7 +43,8 @@ Vercel, personal Hobby plan, deployed with the CLI and connected to the GitHub r
 1. `vercel link` (project `recur`), `vercel git connect`.
 2. Add every variable above with `vercel env add <NAME> production` (and `preview`,
    `development`). The production GitHub OAuth app's callback is
-   `https://<domain>/api/auth/callback/github`.
+   `https://<domain>/api/auth/callback/github`. Values are stored as sensitive, so
+   `vercel env pull` returns them empty; keep `.env.local` by hand.
 3. `pnpm db:migrate` with `DIRECT_URL` pointing at the Supabase session pooler.
 4. `vercel --prod`, or push to `main`.
 

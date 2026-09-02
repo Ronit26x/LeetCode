@@ -36,8 +36,8 @@ export default defineConfig({
       reuseExistingServer: false,
       timeout: 120_000,
       env: {
-        DATABASE_URL: "pglite://.pglite-e2e",
-        DIRECT_URL: "pglite://.pglite-e2e",
+        DATABASE_URL: process.env.E2E_DATABASE_URL ?? "pglite://.pglite-e2e",
+        DIRECT_URL: process.env.E2E_DATABASE_URL ?? "pglite://.pglite-e2e",
         AUTH_SECRET: "e2e-secret-e2e-secret-e2e-secret-e2e",
         AUTH_TRUST_HOST: "true",
         ALLOWED_GITHUB_LOGIN: "Ronit26x",

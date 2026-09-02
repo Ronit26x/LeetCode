@@ -81,3 +81,18 @@ Vercel Hobby cron fires somewhere in the hour after 16:00 UTC, which is 9 AM PDT
 Building the queue for the review day that contains now + 2 hours lands on the correct day on
 both sides of the DST change without hardcoding an offset. The same hit runs `select 1` as the
 Supabase keep-alive.
+
+## Raw SQL fragments never carry a Date
+
+PGlite serializes a JavaScript Date inside a drizzle `sql` fragment; postgres.js does not
+(`ERR_INVALID_ARG_TYPE`), and the unit tests run on PGlite. The live verification against
+Supabase caught it in the first-solve update. Rule: inside `sql\`...\`` pass `date.toISOString()`
+with a `::timestamptz` cast; typed columns in `.set()` and `.values()` are fine. The verification
+script (`scripts/verify-live.mts`) now runs against the real database after every schema or
+transaction change.
+
+## Vercel variables are sensitive
+
+Values added with `vercel env add` are stored as sensitive, so `vercel env pull` writes them back
+empty. The runtime sees them (the cron route verified it); local development keeps its own
+`.env.local`. The README says so instead of promising a working pull.

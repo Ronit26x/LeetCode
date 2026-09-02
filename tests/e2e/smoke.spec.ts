@@ -108,4 +108,11 @@ test("add from a URL, solve, review early, grade, undo, and copy code with tabs"
     const text = await page.evaluate(() => navigator.clipboard.readText());
     expect(text).toBe("int f() {\n\treturn 1;\n}");
   }
+
+  // Delete leaves nothing behind (card, snippets and logs cascade).
+  await page.getByRole("button", { name: "More actions" }).click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
+  await page.getByRole("button", { name: "Delete" }).click();
+  await page.waitForURL(/\/problems$/);
+  await expect(page.getByText("Deleted")).toBeVisible();
 });

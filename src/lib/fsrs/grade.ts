@@ -47,7 +47,8 @@ export async function applyFirstSolve(
     .update(problems)
     .set({
       status: "active",
-      firstSolvedAt: sql`coalesce(${problems.firstSolvedAt}, ${now})`,
+      // A raw fragment cannot type a Date param for postgres.js; pass ISO text and cast.
+      firstSolvedAt: sql`coalesce(${problems.firstSolvedAt}, ${now.toISOString()}::timestamptz)`,
       resolveCount: sql`${problems.resolveCount} + 1`,
       lastMode: "resolve",
       updatedAt: now,

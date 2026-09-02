@@ -35,6 +35,8 @@ login (NODE_ENV=production), so verification runs on `next dev`.
 - Importing a value from a `"use client"` file into a server component gives a client reference.
   Shared constants live in `src/lib/*` without a directive.
 - Use `getDb()` (lazy); nothing may touch the database at import time or build time.
+- Never put a Date inside a raw `sql` fragment: pass `toISOString()` with a `::timestamptz` cast.
+  After schema or transaction changes run `DATABASE_URL=<supabase tx url> pnpm exec tsx scripts/verify-live.mts`.
 - One accent color. Ratings and difficulty are the only other hues. No emoji in chrome.
 - Text in the UI: sentence case, no exclamation marks, no em dashes.
 - Screenshot every changed screen in Light, Dim and Dark before calling it done, and run the
