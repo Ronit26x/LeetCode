@@ -40,6 +40,7 @@ export async function applyFirstSolve(
       note: null,
       ...logToRow(log),
       resultScheduledDays: card.scheduled_days,
+      prevDue: empty.due,
     })
     .onConflictDoNothing();
   await tx

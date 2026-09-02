@@ -46,7 +46,8 @@ export async function fetchLeetCodeQuestion(
   slug: string,
   { timeoutMs = 4000 }: { timeoutMs?: number } = {},
 ): Promise<LeetCodeQuestion> {
-  const res = await fetch("https://leetcode.com/graphql", {
+  const endpoint = process.env.LEETCODE_GRAPHQL_URL ?? "https://leetcode.com/graphql";
+  const res = await fetch(endpoint, {
     method: "POST",
     headers: {
       "content-type": "application/json",

@@ -247,12 +247,16 @@ for (const s of SEED) {
 }
 
 // One relation for the detail page.
-const two = await db.query.problems.findFirst({ where: eq(problems.slug, "two-sum") });
 const lsw = await db.query.problems.findFirst({ where: eq(problems.slug, "longest-substring-without-repeating-characters") });
 const lrc = await db.query.problems.findFirst({ where: eq(problems.slug, "longest-repeating-character-replacement") });
 if (lsw && lrc) {
-  await db.insert(problemRelations).values([{ problemId: lsw.id, relatedProblemId: lrc.id }, { problemId: lrc.id, relatedProblemId: lsw.id }]).onConflictDoNothing();
+  await db
+    .insert(problemRelations)
+    .values([
+      { problemId: lsw.id, relatedProblemId: lrc.id },
+      { problemId: lrc.id, relatedProblemId: lsw.id },
+    ])
+    .onConflictDoNothing();
 }
 console.log("Seeded", SEED.length, "problems");
-for (const row of await db.select({ slug: problems.slug, id: problems.id }).from(problems)) console.log(`ID =`);
 process.exit(0);

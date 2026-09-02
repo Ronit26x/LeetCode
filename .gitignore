@@ -47,3 +47,6 @@ next-env.d.ts
 /playwright-report
 /screenshots
 /drizzle/meta/_journal.json.bak
+
+# E2E scratch database
+/.pglite-e2e

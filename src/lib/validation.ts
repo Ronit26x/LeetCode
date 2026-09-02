@@ -108,3 +108,129 @@ export function firstIssue(error: z.ZodError): string {
   const path = issue.path.filter((p) => typeof p === "string").join(".");
   return path ? `${path}: ${issue.message}` : issue.message;
 }
+
+function isTimeZone(tz: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export const settingsPatchSchema = z
+  .object({
+    timezone: z.string().trim().refine(isTimeZone, "Not an IANA time zone"),
+    dayStartHour: z.number().int().min(0).max(23),
+    desiredRetention: z.number().min(0.8).max(0.97),
+    maximumInterval: z.number().int().min(1).max(36_500),
+    interviewDate: z.union([z.iso.date(), z.null()]),
+    retentionRampEnabled: z.boolean(),
+    retentionRampDays: z.number().int().min(1).max(90),
+    retentionRampTarget: z.number().min(0.8).max(0.97),
+    cramWindowDays: z.number().int().min(0).max(90),
+    allowEasyInRevise: z.boolean(),
+    resolveMilestonesDays: z.array(z.number().int().min(1).max(3650)).max(12),
+    resolveAfterNRevises: z.number().int().min(0).max(50),
+    resolveTimeTargetsMin: z.object({
+      easy: z.number().int().min(1).max(240),
+      medium: z.number().int().min(1).max(240),
+      hard: z.number().int().min(1).max(240),
+    }),
+    reviseTimeEstimateMin: z.number().int().min(1).max(120),
+    dailySoftCap: z.union([z.number().int().min(1).max(1000), z.null()]),
+  })
+  .partial();
+export type SettingsPatch = z.input<typeof settingsPatchSchema>;
+
+export const fsrsWeightsSchema = z.array(z.number().finite()).length(21, "FSRS-6 has exactly 21 weights");
+
+/** Everything, for backup. Import is idempotent by slug, tag name and client_review_id. */
+export const exportSchema = z.object({
+  app: z.literal("recur"),
+  version: z.literal(1),
+  exportedAt: z.string(),
+  settings: z.record(z.string(), z.unknown()).optional(),
+  tags: z.array(
+    z.object({
+      name: z.string().trim().min(1).max(40),
+      color: tagColorSchema.default("stone"),
+      kind: tagKindSchema.default("custom"),
+      alwaysResolve: z.boolean().default(false),
+      sortOrder: z.number().int().default(0),
+    }),
+  ),
+  problems: z.array(
+    z.object({
+      slug: z.string().trim().min(1).max(200),
+      leetcodeNumber: z.number().int().nullable().default(null),
+      title: z.string().trim().min(1).max(200),
+      url: z.string().nullable().default(null),
+      difficulty: difficultySchema.default("medium"),
+      status: problemStatusSchema.default("backlog"),
+      promptSummary: z.string().default(""),
+      keyInsight: z.string().default(""),
+      approach: z.string().default(""),
+      timeComplexity: z.string().default(""),
+      spaceComplexity: z.string().default(""),
+      pitfalls: z.string().default(""),
+      notes: z.string().default(""),
+      reviseCount: z.number().int().min(0).default(0),
+      resolveCount: z.number().int().min(0).default(0),
+      lastMode: reviewModeSchema.nullable().default(null),
+      firstSolvedAt: z.string().nullable().default(null),
+      createdAt: z.string().optional(),
+      tags: z.array(z.string()).default([]),
+      related: z.array(z.string()).default([]),
+      snippets: z
+        .array(
+          z.object({
+            label: z.string().default("Optimal"),
+            language: snippetLanguageSchema.default("cpp"),
+            code: z.string(),
+            sortOrder: z.number().int().default(0),
+          }),
+        )
+        .default([]),
+      card: z
+        .object({
+          due: z.string(),
+          stability: z.number(),
+          difficulty: z.number(),
+          elapsedDays: z.number().int(),
+          scheduledDays: z.number().int(),
+          learningSteps: z.number().int().default(0),
+          reps: z.number().int(),
+          lapses: z.number().int(),
+          state: z.number().int().min(0).max(3),
+          lastReview: z.string().nullable().default(null),
+        })
+        .nullable()
+        .default(null),
+      logs: z
+        .array(
+          z.object({
+            clientReviewId: z.uuid(),
+            mode: reviewModeSchema,
+            rating: z.number().int().min(0).max(4),
+            durationSeconds: z.number().int().nullable().default(null),
+            note: z.string().nullable().default(null),
+            reviewedAt: z.string(),
+            undoneAt: z.string().nullable().default(null),
+            state: z.number().int(),
+            due: z.string(),
+            stability: z.number(),
+            difficulty: z.number(),
+            elapsedDays: z.number().int(),
+            lastElapsedDays: z.number().int(),
+            scheduledDays: z.number().int(),
+            learningSteps: z.number().int().default(0),
+            resultScheduledDays: z.number().int().default(0),
+            prevDue: z.string().nullable().default(null),
+          }),
+        )
+        .default([]),
+    }),
+  ),
+});
+export type ExportFile = z.infer<typeof exportSchema>;

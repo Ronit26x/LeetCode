@@ -50,3 +50,11 @@ in muscle memory.
 The ui-ux-pro-max search suggested Claymorphism with a purple primary for a study tool. It was
 rejected because the brief asks for Linear and Things 3 restraint. Its accessibility checklist was
 kept.
+
+## Undo restores the previous due date from a snapshot
+
+`ts-fsrs` `rollback(card, log)` rebuilds stability, difficulty, reps, lapses, state and
+`last_review` from the log, but the log's `due` field holds the previous review instant, so the
+rolled-back card comes back due "now". That is fine mid-session and wrong for an early review of a
+card due next month. Each log therefore stores `prev_due`; undo calls `rollback` and then restores
+`due` from the snapshot. Nothing else about the library's rollback is overridden.

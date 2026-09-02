@@ -35,7 +35,7 @@ export function SidebarUser({
           </span>
         )}
         <span className="truncate text-foreground">{name || login}</span>
-        {login ? <span className="ml-auto truncate text-fg-subtle">{login}</span> : null}
+        {login && login !== name ? <span className="ml-auto truncate text-fg-subtle">{login}</span> : null}
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="start" className="w-(--anchor-width)">
         <DropdownMenuItem onClick={() => void onSignOut()}>

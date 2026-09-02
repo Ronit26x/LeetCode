@@ -188,6 +188,8 @@ export const reviewLogs = pgTable(
     learningSteps: integer("learning_steps").notNull(),
     /** The interval the grade produced, in days, for the history timeline. */
     resultScheduledDays: integer("result_scheduled_days").notNull().default(0),
+    /** The card's due date before this grade. ts-fsrs rollback cannot recover it, so undo restores it from here. */
+    prevDue: timestamp("prev_due", { withTimezone: true, mode: "date" }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   },
   (t) => [

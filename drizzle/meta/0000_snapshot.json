@@ -1,5 +1,5 @@
 {
-  "id": "1c4e5c9a-9e6a-49c2-ad32-1dad09e050ff",
+  "id": "d6523d7e-b38d-42b5-a9b0-cd61573c5d10",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -659,6 +659,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "prev_due": {
+          "name": "prev_due",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",

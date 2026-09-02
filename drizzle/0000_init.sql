@@ -80,6 +80,7 @@ CREATE TABLE "review_logs" (
 	"scheduled_days" integer NOT NULL,
 	"learning_steps" integer NOT NULL,
 	"result_scheduled_days" integer DEFAULT 0 NOT NULL,
+	"prev_due" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "review_logs_rating_check" CHECK ("review_logs"."rating" between 0 and 4)
 );

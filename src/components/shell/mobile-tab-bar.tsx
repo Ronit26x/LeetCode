@@ -9,7 +9,8 @@ import { NAV_ICONS } from "@/components/shell/sidebar";
 export function MobileTabBar({ hidden }: { hidden?: boolean }) {
   const pathname = usePathname();
   const active = activeNavKey(pathname);
-  if (hidden) return null;
+  // The session owns the whole phone screen; Esc or the close button leave it.
+  if (hidden || pathname.startsWith("/review")) return null;
   return (
     <nav
       aria-label="Primary"
