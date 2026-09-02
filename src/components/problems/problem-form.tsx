@@ -3,17 +3,31 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowSquareOut, CaretDown, CaretRight, MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
+import {
+  ArrowSquareOut,
+  CaretDown,
+  CaretRight,
+  MagnifyingGlass,
+} from "@phosphor-icons/react/dist/ssr";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass, textareaClass } from "@/components/common/field";
 import { NativeSelect } from "@/components/common/native-select";
 import { TagPicker } from "@/components/problems/tag-picker";
 import { ProblemPicker } from "@/components/problems/problem-picker";
-import { SnippetsEditor, newSnippet, type SnippetDraft } from "@/components/problems/snippets-editor";
+import {
+  SnippetsEditor,
+  newSnippet,
+  type SnippetDraft,
+} from "@/components/problems/snippets-editor";
 import { NotesEditor } from "@/components/notes/notes-editor";
 import { RatingButtons, type RatingValue } from "@/components/review/rating-buttons";
-import { createProblem, prefillFromLeetCode, updateProblem, type PrefillResult } from "@/lib/problems/actions";
+import {
+  createProblem,
+  prefillFromLeetCode,
+  updateProblem,
+  type PrefillResult,
+} from "@/lib/problems/actions";
 import type { ProblemBrief, TagBrief } from "@/lib/problems/queries";
 import type { Difficulty } from "@/db/schema";
 import { cn } from "@/lib/utils";
@@ -83,7 +97,11 @@ function Section({
               aria-expanded={open}
               className="flex items-center gap-1 text-sm font-medium text-foreground"
             >
-              {open ? <CaretDown size={14} className="text-fg-subtle" /> : <CaretRight size={14} className="text-fg-subtle" />}
+              {open ? (
+                <CaretDown size={14} className="text-fg-subtle" />
+              ) : (
+                <CaretRight size={14} className="text-fg-subtle" />
+              )}
               {title}
             </button>
           ) : (
@@ -136,7 +154,9 @@ export function ProblemForm({
     setLooking(false);
     if (!res.ok) {
       setPrefillError(res.error);
-      const parsed = lookup.match(/problems\/([a-z0-9-]+)/i)?.[1] ?? (/^[a-z0-9-]+$/i.test(lookup.trim()) ? lookup.trim() : null);
+      const parsed =
+        lookup.match(/problems\/([a-z0-9-]+)/i)?.[1] ??
+        (/^[a-z0-9-]+$/i.test(lookup.trim()) ? lookup.trim() : null);
       if (parsed) {
         set("slug", parsed.toLowerCase());
         set("url", `https://leetcode.com/problems/${parsed.toLowerCase()}/`);
@@ -174,7 +194,13 @@ export function ProblemForm({
       notes: v.notes,
       snippets: v.snippets
         .filter((s) => s.code.length > 0)
-        .map((s, i) => ({ id: s.id, label: s.label.trim() || "Snippet", language: s.language, code: s.code, sortOrder: i })),
+        .map((s, i) => ({
+          id: s.id,
+          label: s.label.trim() || "Snippet",
+          language: s.language,
+          code: s.code,
+          sortOrder: i,
+        })),
       tagIds: v.tagIds,
       newTags: v.newTags,
       relatedIds: v.related.map((r) => r.id),
@@ -189,7 +215,12 @@ export function ProblemForm({
         ...payload(),
         outcome:
           outcome.kind === "solved"
-            ? { kind: "solved", rating: outcome.rating, durationSeconds: Number.isFinite(durationSeconds) ? durationSeconds : null, clientReviewId: crypto.randomUUID() }
+            ? {
+                kind: "solved",
+                rating: outcome.rating,
+                durationSeconds: Number.isFinite(durationSeconds) ? durationSeconds : null,
+                clientReviewId: crypto.randomUUID(),
+              }
             : { kind: "backlog" },
       });
       if (!res.ok) {
@@ -197,7 +228,9 @@ export function ProblemForm({
         toast.error(res.error);
         return;
       }
-      toast.success(outcome.kind === "solved" ? "Solved. It is scheduled." : "Added to the backlog.");
+      toast.success(
+        outcome.kind === "solved" ? "Solved. It is scheduled." : "Added to the backlog.",
+      );
       router.push(`/problems/${res.data.id}`);
     });
   }
@@ -259,7 +292,13 @@ export function ProblemForm({
               spellCheck={false}
               className={cn(inputClass, "font-mono text-md")}
             />
-            <Button type="button" variant="outline" size="lg" onClick={runPrefill} disabled={looking || !lookup.trim()}>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={runPrefill}
+              disabled={looking || !lookup.trim()}
+            >
               <MagnifyingGlass size={16} />
               {looking ? "Looking up" : "Prefill"}
             </Button>
@@ -276,7 +315,10 @@ export function ProblemForm({
                 <>
                   {" "}
                   Already in your library:{" "}
-                  <Link href={`/problems/${prefill.existingProblemId}`} className="text-primary underline underline-offset-2">
+                  <Link
+                    href={`/problems/${prefill.existingProblemId}`}
+                    className="text-primary underline underline-offset-2"
+                  >
                     open it
                   </Link>
                   .
@@ -284,7 +326,10 @@ export function ProblemForm({
               ) : null}
             </p>
           ) : (
-            <p className="text-2xs text-fg-subtle">Fetches the number, title, difficulty and topics. Falls back to manual entry if LeetCode does not answer within a few seconds.</p>
+            <p className="text-2xs text-fg-subtle">
+              Fetches the number, title, difficulty and topics. Falls back to manual entry if
+              LeetCode does not answer within a few seconds.
+            </p>
           )}
         </div>
       ) : null}
@@ -295,15 +340,31 @@ export function ProblemForm({
             id="number"
             inputMode="numeric"
             value={v.leetcodeNumber ?? ""}
-            onChange={(e) => set("leetcodeNumber", e.target.value ? Number.parseInt(e.target.value, 10) || null : null)}
+            onChange={(e) =>
+              set(
+                "leetcodeNumber",
+                e.target.value ? Number.parseInt(e.target.value, 10) || null : null,
+              )
+            }
             className={inputClass}
           />
         </Field>
         <Field label="Title" htmlFor="title">
-          <input id="title" ref={titleRef} value={v.title} onChange={(e) => set("title", e.target.value)} required className={inputClass} />
+          <input
+            id="title"
+            ref={titleRef}
+            value={v.title}
+            onChange={(e) => set("title", e.target.value)}
+            required
+            className={inputClass}
+          />
         </Field>
         <Field label="Difficulty" htmlFor="difficulty" className="col-span-2 sm:col-span-1">
-          <NativeSelect id="difficulty" value={v.difficulty} onChange={(e) => set("difficulty", e.target.value as Difficulty)}>
+          <NativeSelect
+            id="difficulty"
+            value={v.difficulty}
+            onChange={(e) => set("difficulty", e.target.value as Difficulty)}
+          >
             <option value="easy">Easy</option>
             <option value="medium">Medium</option>
             <option value="hard">Hard</option>
@@ -315,38 +376,105 @@ export function ProblemForm({
         htmlFor="url"
         right={
           v.url ? (
-            <a href={v.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-2xs text-fg-muted hover:text-foreground">
+            <a
+              href={v.url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-2xs text-fg-muted hover:text-foreground"
+            >
               Open <ArrowSquareOut size={12} />
             </a>
           ) : null
         }
       >
-        <input id="url" value={v.url} onChange={(e) => set("url", e.target.value)} placeholder="https://leetcode.com/problems/…" className={cn(inputClass, "font-mono text-md")} spellCheck={false} />
+        <input
+          id="url"
+          value={v.url}
+          onChange={(e) => set("url", e.target.value)}
+          placeholder="https://leetcode.com/problems/…"
+          className={cn(inputClass, "font-mono text-md")}
+          spellCheck={false}
+        />
       </Field>
 
-      <Section title="Card front" hint="Your own restatement of the problem, one to three lines. This is all you see before you flip.">
+      <Section
+        title="Card front"
+        hint="Your own restatement of the problem, one to three lines. This is all you see before you flip."
+      >
         <Field label="Prompt summary" htmlFor="promptSummary">
-          <textarea id="promptSummary" rows={3} value={v.promptSummary} onChange={(e) => set("promptSummary", e.target.value)} className={textareaClass} placeholder="Given an array and a target, return indices of the two numbers that add up to it." />
+          <textarea
+            id="promptSummary"
+            rows={3}
+            value={v.promptSummary}
+            onChange={(e) => set("promptSummary", e.target.value)}
+            className={textareaClass}
+            placeholder="Given an array and a target, return indices of the two numbers that add up to it."
+          />
         </Field>
       </Section>
 
       <Section title="Card back" hint="The insight comes first and biggest. The rest supports it.">
-        <Field label="Key insight" htmlFor="keyInsight" hint="One or two lines. The thing you must recall.">
-          <textarea id="keyInsight" rows={2} value={v.keyInsight} onChange={(e) => set("keyInsight", e.target.value)} className={cn(textareaClass, "display-italic text-lg leading-7")} placeholder="Store each number's complement in a hash map as you go." />
+        <Field
+          label="Key insight"
+          htmlFor="keyInsight"
+          hint="One or two lines. The thing you must recall."
+        >
+          <textarea
+            id="keyInsight"
+            rows={2}
+            value={v.keyInsight}
+            onChange={(e) => set("keyInsight", e.target.value)}
+            className={cn(textareaClass, "display-italic text-lg leading-7")}
+            placeholder="Store each number's complement in a hash map as you go."
+          />
         </Field>
         <Field label="Approach" htmlFor="approach" hint="Numbered steps. Markdown.">
-          <textarea id="approach" rows={5} value={v.approach} onChange={(e) => set("approach", e.target.value)} className={cn(textareaClass, "font-mono text-md leading-5")} style={{ tabSize: 4 }} placeholder={"1. Walk the array once.\n2. For each x, check if target - x is in the map.\n3. Otherwise store x -> index."} />
+          <textarea
+            id="approach"
+            rows={5}
+            value={v.approach}
+            onChange={(e) => set("approach", e.target.value)}
+            className={cn(textareaClass, "font-mono text-md leading-5")}
+            style={{ tabSize: 4 }}
+            placeholder={
+              "1. Walk the array once.\n2. For each x, check if target - x is in the map.\n3. Otherwise store x -> index."
+            }
+          />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Time" htmlFor="time">
-            <input id="time" value={v.timeComplexity} onChange={(e) => set("timeComplexity", e.target.value)} placeholder="O(n)" className={cn(inputClass, "font-mono text-md")} />
+            <input
+              id="time"
+              value={v.timeComplexity}
+              onChange={(e) => set("timeComplexity", e.target.value)}
+              placeholder="O(n)"
+              className={cn(inputClass, "font-mono text-md")}
+            />
           </Field>
           <Field label="Space" htmlFor="space">
-            <input id="space" value={v.spaceComplexity} onChange={(e) => set("spaceComplexity", e.target.value)} placeholder="O(n)" className={cn(inputClass, "font-mono text-md")} />
+            <input
+              id="space"
+              value={v.spaceComplexity}
+              onChange={(e) => set("spaceComplexity", e.target.value)}
+              placeholder="O(n)"
+              className={cn(inputClass, "font-mono text-md")}
+            />
           </Field>
         </div>
-        <Field label="Pitfalls" htmlFor="pitfalls" hint="Edge cases and the bugs you hit. Markdown.">
-          <textarea id="pitfalls" rows={3} value={v.pitfalls} onChange={(e) => set("pitfalls", e.target.value)} className={cn(textareaClass, "font-mono text-md leading-5")} style={{ tabSize: 4 }} placeholder={"- Same element twice\n- Negative numbers"} />
+        <Field
+          label="Pitfalls"
+          htmlFor="pitfalls"
+          hint="Edge cases and the bugs you hit. Markdown."
+        >
+          <textarea
+            id="pitfalls"
+            rows={3}
+            value={v.pitfalls}
+            onChange={(e) => set("pitfalls", e.target.value)}
+            className={cn(textareaClass, "font-mono text-md leading-5")}
+            style={{ tabSize: 4 }}
+            placeholder={"- Same element twice\n- Negative numbers"}
+          />
         </Field>
       </Section>
 
@@ -354,16 +482,39 @@ export function ProblemForm({
         <SnippetsEditor value={v.snippets} onChange={(s) => set("snippets", s)} />
       </Section>
 
-      <Section title="Tags" hint="Topics drive interleaving; the first topic tag is the primary one.">
-        <TagPicker tags={tags} value={v.tagIds} newTags={v.newTags} onChange={(ids, n) => setV((p) => ({ ...p, tagIds: ids, newTags: n }))} suggested={suggested} />
+      <Section
+        title="Tags"
+        hint="Topics drive interleaving; the first topic tag is the primary one."
+      >
+        <TagPicker
+          tags={tags}
+          value={v.tagIds}
+          newTags={v.newTags}
+          onChange={(ids, n) => setV((p) => ({ ...p, tagIds: ids, newTags: n }))}
+          suggested={suggested}
+        />
       </Section>
 
       <Section title="Similar problems">
-        <ProblemPicker value={v.related} onChange={(r) => set("related", r)} excludeId={problemId} />
+        <ProblemPicker
+          value={v.related}
+          onChange={(r) => set("related", r)}
+          excludeId={problemId}
+        />
       </Section>
 
-      <Section title="Extended notes" hint="Long-form. Markdown with fenced code." collapsible defaultOpen={mode === "edit" ? !!initial?.notes : false}>
-        <NotesEditor id="notes" value={v.notes} onChange={(n) => set("notes", n)} placeholder="Anything else worth keeping: variants, follow-ups, what the interviewer might ask." />
+      <Section
+        title="Extended notes"
+        hint="Long-form. Markdown with fenced code."
+        collapsible
+        defaultOpen={mode === "edit" ? !!initial?.notes : false}
+      >
+        <NotesEditor
+          id="notes"
+          value={v.notes}
+          onChange={(n) => set("notes", n)}
+          placeholder="Anything else worth keeping: variants, follow-ups, what the interviewer might ask."
+        />
       </Section>
 
       {error ? (
@@ -391,23 +542,51 @@ export function ProblemForm({
               <p className="text-sm font-medium">How did the solve go?</p>
               <label className="flex items-center gap-2 text-2xs text-fg-muted">
                 Minutes
-                <input value={minutes} onChange={(e) => setMinutes(e.target.value)} inputMode="numeric" className={cn(inputClass, "h-7 w-16 text-md")} placeholder="30" />
+                <input
+                  value={minutes}
+                  onChange={(e) => setMinutes(e.target.value)}
+                  inputMode="numeric"
+                  className={cn(inputClass, "h-7 w-16 text-md")}
+                  placeholder="30"
+                />
               </label>
             </div>
-            <RatingButtons mode="first" showRubric onRate={(r) => submitCreate({ kind: "solved", rating: r })} disabled={!canSubmit} />
+            <RatingButtons
+              mode="first"
+              showRubric
+              onRate={(r) => submitCreate({ kind: "solved", rating: r })}
+              disabled={!canSubmit}
+            />
             <div className="flex items-center justify-between">
-              <button type="button" onClick={() => setRatingOpen(false)} className="text-2xs text-fg-muted hover:text-foreground">
+              <button
+                type="button"
+                onClick={() => setRatingOpen(false)}
+                className="text-2xs text-fg-muted hover:text-foreground"
+              >
                 Back
               </button>
-              <span className="text-2xs text-fg-subtle">Picking a grade saves and schedules the first review.</span>
+              <span className="text-2xs text-fg-subtle">
+                Picking a grade saves and schedules the first review.
+              </span>
             </div>
           </div>
         ) : (
           <div className="flex items-center justify-end gap-2">
-            <Button type="button" variant="outline" size="lg" onClick={() => submitCreate({ kind: "backlog" })} disabled={!canSubmit}>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={() => submitCreate({ kind: "backlog" })}
+              disabled={!canSubmit}
+            >
               {pending ? "Saving" : "Add to backlog"}
             </Button>
-            <Button type="button" size="lg" onClick={() => setRatingOpen(true)} disabled={!canSubmit}>
+            <Button
+              type="button"
+              size="lg"
+              onClick={() => setRatingOpen(true)}
+              disabled={!canSubmit}
+            >
               Solved it today
             </Button>
           </div>

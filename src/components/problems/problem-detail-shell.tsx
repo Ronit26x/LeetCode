@@ -47,12 +47,25 @@ export function ProblemDetailShell({
     <>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">{header}</div>
-        <ProblemActions id={id} status={status} hasCard={hasCard} onEdit={() => setEditing((v) => !v)} editing={editing} />
+        <ProblemActions
+          id={id}
+          status={status}
+          hasCard={hasCard}
+          onEdit={() => setEditing((v) => !v)}
+          editing={editing}
+        />
       </div>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
         <div className="min-w-0">
           {editing ? (
-            <ProblemForm mode="edit" tags={tags} initial={initial} problemId={id} onSaved={() => setEditing(false)} onCancel={() => setEditing(false)} />
+            <ProblemForm
+              mode="edit"
+              tags={tags}
+              initial={initial}
+              problemId={id}
+              onSaved={() => setEditing(false)}
+              onCancel={() => setEditing(false)}
+            />
           ) : (
             children
           )}

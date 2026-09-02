@@ -143,7 +143,9 @@ export const settingsPatchSchema = z
   .partial();
 export type SettingsPatch = z.input<typeof settingsPatchSchema>;
 
-export const fsrsWeightsSchema = z.array(z.number().finite()).length(21, "FSRS-6 has exactly 21 weights");
+export const fsrsWeightsSchema = z
+  .array(z.number().finite())
+  .length(21, "FSRS-6 has exactly 21 weights");
 
 /** Everything, for backup. Import is idempotent by slug, tag name and client_review_id. */
 export const exportSchema = z.object({

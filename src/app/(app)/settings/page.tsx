@@ -15,7 +15,10 @@ export default async function SettingsPage() {
   const [tags, settings] = await Promise.all([listTagsWithCounts(), getSettings()]);
   return (
     <>
-      <PageHeader title="Settings" description="Scheduling, the interview, modes, tags, theme, keyboard, and data." />
+      <PageHeader
+        title="Settings"
+        description="Scheduling, the interview, modes, tags, theme, keyboard, and data."
+      />
       <div className="flex max-w-2xl flex-col gap-6">
         <SettingsForm settings={settings} />
 
@@ -28,13 +31,17 @@ export default async function SettingsPage() {
 
         <section className="rounded-xl border border-border bg-surface p-5">
           <h2 className="text-sm font-medium">Tags</h2>
-          <p className="mt-1 mb-3 text-md text-fg-muted">Rename, recolor, merge or delete. Topics drive interleaving in the daily queue.</p>
+          <p className="mt-1 mb-3 text-md text-fg-muted">
+            Rename, recolor, merge or delete. Topics drive interleaving in the daily queue.
+          </p>
           <TagManager tags={tags} />
         </section>
 
         <section className="rounded-xl border border-border bg-surface p-5">
           <h2 className="text-sm font-medium">Theme</h2>
-          <p className="mt-1 mb-3 text-md text-fg-muted">Dim is a warm, low-contrast palette for long sessions. System follows the OS.</p>
+          <p className="mt-1 mb-3 text-md text-fg-muted">
+            Dim is a warm, low-contrast palette for long sessions. System follows the OS.
+          </p>
           <ThemeSwitch size="lg" showLabels />
         </section>
 
@@ -44,20 +51,26 @@ export default async function SettingsPage() {
             {KEYS.map(([k, v]) => (
               <div key={k} className="contents">
                 <dt>
-                  <kbd className="rounded-[3px] border border-border bg-sunken px-1.5 font-sans text-2xs font-medium">{k}</kbd>
+                  <kbd className="rounded-[3px] border border-border bg-sunken px-1.5 font-sans text-2xs font-medium">
+                    {k}
+                  </kbd>
                 </dt>
                 <dd className="text-fg-muted">{v}</dd>
               </div>
             ))}
             <div className="contents">
               <dt>
-                <kbd className="rounded-[3px] border border-border bg-sunken px-1.5 font-sans text-2xs font-medium">⌘K</kbd>
+                <kbd className="rounded-[3px] border border-border bg-sunken px-1.5 font-sans text-2xs font-medium">
+                  ⌘K
+                </kbd>
               </dt>
               <dd className="text-fg-muted">Jump to a problem, page or action, anywhere</dd>
             </div>
             <div className="contents">
               <dt>
-                <kbd className="rounded-[3px] border border-border bg-sunken px-1.5 font-sans text-2xs font-medium">⌘↵</kbd>
+                <kbd className="rounded-[3px] border border-border bg-sunken px-1.5 font-sans text-2xs font-medium">
+                  ⌘↵
+                </kbd>
               </dt>
               <dd className="text-fg-muted">Save the problem form</dd>
             </div>
@@ -70,7 +83,10 @@ export default async function SettingsPage() {
                 <ul className="mt-1 flex flex-col gap-1 text-2xs text-fg-muted">
                   {([1, 2, 3, 4] as const).map((r) => (
                     <li key={r}>
-                      <span className="font-medium text-foreground">{["", "Again", "Hard", "Good", "Easy"][r]}</span>: {RUBRIC[mode][r]}
+                      <span className="font-medium text-foreground">
+                        {["", "Again", "Hard", "Good", "Easy"][r]}
+                      </span>
+                      : {RUBRIC[mode][r]}
                     </li>
                   ))}
                 </ul>

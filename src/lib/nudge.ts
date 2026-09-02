@@ -8,7 +8,10 @@ function escape(s: string) {
 }
 
 /** A quiet, plain email: the day's list and a link. Sent only when Resend is configured. */
-export function buildNudgeEmail(q: TodayQueue, appUrl: string): { subject: string; html: string; text: string } {
+export function buildNudgeEmail(
+  q: TodayQueue,
+  appUrl: string,
+): { subject: string; html: string; text: string } {
   const tz = q.settings.timezone;
   const date = formatInTimeZone(q.stats.dayStartAt, tz, "EEEE, MMMM d");
   const n = q.stats.due;
@@ -17,10 +20,17 @@ export function buildNudgeEmail(q: TodayQueue, appUrl: string): { subject: strin
     const mode = p.suggestion ? MODE_LABEL[p.suggestion.mode] : "Revise";
     const num = p.leetcodeNumber ? `${p.leetcodeNumber}. ` : "";
     const r = p.retrievability !== null ? ` (R ${formatPercent(p.retrievability)})` : "";
-    return { text: `${mode.padEnd(7)} ${num}${p.title}${r}`, html: `<tr><td style="padding:4px 12px 4px 0;color:#6b7280;font-size:13px">${mode}</td><td style="padding:4px 0;font-size:14px">${escape(num + p.title)}<span style="color:#9ca3af">${r}</span></td></tr>` };
+    return {
+      text: `${mode.padEnd(7)} ${num}${p.title}${r}`,
+      html: `<tr><td style="padding:4px 12px 4px 0;color:#6b7280;font-size:13px">${mode}</td><td style="padding:4px 0;font-size:14px">${escape(num + p.title)}<span style="color:#9ca3af">${r}</span></td></tr>`,
+    };
   });
-  const summary = n ? `${pluralize(q.stats.revises, "revise")}, ${pluralize(q.stats.resolves, "resolve")}, about ${formatMinutes(q.stats.estimatedMinutes)}.` : "Nothing is due. Add a problem you solved, or work through the backlog.";
-  const text = [`${date}`, summary, "", ...lines.map((l) => l.text), "", `${appUrl}/today`].join("\n");
+  const summary = n
+    ? `${pluralize(q.stats.revises, "revise")}, ${pluralize(q.stats.resolves, "resolve")}, about ${formatMinutes(q.stats.estimatedMinutes)}.`
+    : "Nothing is due. Add a problem you solved, or work through the backlog.";
+  const text = [`${date}`, summary, "", ...lines.map((l) => l.text), "", `${appUrl}/today`].join(
+    "\n",
+  );
   const html = `<!doctype html><html><body style="margin:0;padding:24px;background:#fbfaf8;color:#1f2937;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
 <div style="max-width:560px;margin:0 auto">
 <p style="margin:0 0 4px;font-size:13px;color:#6b7280">${escape(date)}</p>

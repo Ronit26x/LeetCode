@@ -27,7 +27,12 @@ const viewports = {
 } as const;
 
 function slugOf(p: string) {
-  return p.replace(/^\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/-+$/, "") || "root";
+  return (
+    p
+      .replace(/^\//, "")
+      .replace(/[^a-z0-9]+/gi, "-")
+      .replace(/-+$/, "") || "root"
+  );
 }
 
 async function capture(browser: Browser, authed: boolean, list: string[]) {
@@ -42,7 +47,8 @@ async function capture(browser: Browser, authed: boolean, list: string[]) {
       const page = await context.newPage();
       await page.goto(`${BASE}/login`);
       const btn = page.getByRole("button", { name: /test sign in/i });
-      if ((await btn.count()) === 0) throw new Error("Test sign-in button not found. Set AUTH_TEST_LOGIN.");
+      if ((await btn.count()) === 0)
+        throw new Error("Test sign-in button not found. Set AUTH_TEST_LOGIN.");
       await btn.click();
       await page.waitForURL(/\/today/);
       await page.close();

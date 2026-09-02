@@ -7,5 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function isMac(): boolean {
   if (typeof navigator === "undefined") return true;
-  return /Mac|iPhone|iPad|iPod/.test(navigator.platform ?? "") || /Mac OS/.test(navigator.userAgent);
+  return (
+    /Mac|iPhone|iPad|iPod/.test(navigator.platform ?? "") || /Mac OS/.test(navigator.userAgent)
+  );
 }

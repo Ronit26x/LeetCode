@@ -6,12 +6,22 @@ import { getSettings } from "@/db/bootstrap";
 import { ProblemDetailShell } from "@/components/problems/problem-detail-shell";
 import { CardFront } from "@/components/review/card-front";
 import { CardBack } from "@/components/review/card-back";
-import { DifficultyBadge, MemoryBadge, ModeBadge, StatusBadge, TagBadge } from "@/components/common/badges";
+import {
+  DifficultyBadge,
+  MemoryBadge,
+  ModeBadge,
+  StatusBadge,
+  TagBadge,
+} from "@/components/common/badges";
 import { MemoryPanel } from "@/components/problems/memory-panel";
 import { ReviewHistory } from "@/components/problems/review-history";
 import type { ProblemFormValues } from "@/components/problems/problem-form";
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
   const p = await getProblem(id);
   return { title: p ? `${p.leetcodeNumber ? `${p.leetcodeNumber}. ` : ""}${p.title}` : "Problem" };
@@ -35,7 +45,12 @@ export default async function ProblemPage({ params }: { params: Promise<{ id: st
     spaceComplexity: p.spaceComplexity,
     pitfalls: p.pitfalls,
     notes: p.notes,
-    snippets: p.snippets.map((s) => ({ id: s.id, label: s.label, language: s.language, code: s.code })),
+    snippets: p.snippets.map((s) => ({
+      id: s.id,
+      label: s.label,
+      language: s.language,
+      code: s.code,
+    })),
     tagIds: p.tags.map((t) => t.id),
     newTags: [],
     related: p.related,
@@ -50,12 +65,17 @@ export default async function ProblemPage({ params }: { params: Promise<{ id: st
         {p.status === "active" ? <MemoryBadge state={p.computed.memoryState} /> : null}
         {p.computed.suggestion ? <ModeBadge mode={p.computed.suggestion.mode} /> : null}
         {p.url ? (
-          <a href={p.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-foreground">
+          <a
+            href={p.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 hover:text-foreground"
+          >
             LeetCode <ArrowSquareOut size={12} />
           </a>
         ) : null}
       </div>
-      <h1 className="display mt-1 text-2xl leading-8 sm:text-3xl sm:leading-10">{p.title}</h1>
+      <h1 className="mt-1 display text-2xl leading-8 sm:text-3xl sm:leading-10">{p.title}</h1>
       {p.tags.length ? (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {p.tags.map((t) => (

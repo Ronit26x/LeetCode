@@ -113,8 +113,14 @@ export function CommandPalette({
         {problems.length > 0 ? (
           <CommandGroup heading="Problems">
             {problems.map((p) => (
-              <CommandItem key={p.id} value={`problem ${p.number ?? ""} ${p.title}`} onSelect={() => go(`/problems/${p.id}`)}>
-                {p.number ? <span className="w-10 text-right text-fg-subtle">{p.number}</span> : null}
+              <CommandItem
+                key={p.id}
+                value={`problem ${p.number ?? ""} ${p.title}`}
+                onSelect={() => go(`/problems/${p.id}`)}
+              >
+                {p.number ? (
+                  <span className="w-10 text-right text-fg-subtle">{p.number}</span>
+                ) : null}
                 <span className="truncate">{p.title}</span>
               </CommandItem>
             ))}

@@ -16,7 +16,14 @@ export interface StatsData {
   byState: { new: number; review: number; lapsed: number };
   byStatus: { backlog: number; active: number; suspended: number; archived: number };
   stabilityBuckets: { label: string; count: number }[];
-  tagMastery: { id: string; name: string; color: TagColor; count: number; meanR: number | null; meanS: number | null }[];
+  tagMastery: {
+    id: string;
+    name: string;
+    color: TagColor;
+    count: number;
+    meanR: number | null;
+    meanS: number | null;
+  }[];
   resolveTime: { difficulty: Difficulty; avgMinutes: number | null; target: number; n: number }[];
   readiness: {
     interviewDate: string;
@@ -24,7 +31,13 @@ export interface StatsData {
     days: number;
     meanRecall: number | null;
     shareAbove90: number | null;
-    weakest: { id: string; title: string; leetcodeNumber: number | null; difficulty: Difficulty; recall: number }[];
+    weakest: {
+      id: string;
+      title: string;
+      leetcodeNumber: number | null;
+      difficulty: Difficulty;
+      recall: number;
+    }[];
     cardCount: number;
   } | null;
 }
@@ -50,12 +63,20 @@ export async function getStats(now = new Date()): Promise<StatsData> {
   const db = await getDb();
   const tz = settings.timezone;
 
-  const rows = await db.query.problems.findMany({ with: { card: true, problemTags: { with: { tag: true } } } });
+  const rows = await db.query.problems.findMany({
+    with: { card: true, problemTags: { with: { tag: true } } },
+  });
   const items = await enrichProblems(rows, { settings, now });
   const active = items.filter((i) => i.status === "active" && i.card);
 
   const logs = await db
-    .select({ mode: reviewLogs.mode, rating: reviewLogs.rating, at: reviewLogs.reviewedAt, seconds: reviewLogs.durationSeconds, problemId: reviewLogs.problemId })
+    .select({
+      mode: reviewLogs.mode,
+      rating: reviewLogs.rating,
+      at: reviewLogs.reviewedAt,
+      seconds: reviewLogs.durationSeconds,
+      problemId: reviewLogs.problemId,
+    })
     .from(reviewLogs)
     .where(and(isNull(reviewLogs.undoneAt), sql`${reviewLogs.rating} > 0`));
 
@@ -91,10 +112,20 @@ export async function getStats(now = new Date()): Promise<StatsData> {
     stabilityBuckets[idx === -1 ? BUCKETS.length - 1 : idx].count++;
   }
 
-  const tagAgg = new Map<string, { id: string; name: string; color: TagColor; rs: number[]; ss: number[]; count: number }>();
+  const tagAgg = new Map<
+    string,
+    { id: string; name: string; color: TagColor; rs: number[]; ss: number[]; count: number }
+  >();
   for (const i of items) {
     for (const t of i.tags) {
-      const agg = tagAgg.get(t.id) ?? { id: t.id, name: t.name, color: t.color, rs: [], ss: [], count: 0 };
+      const agg = tagAgg.get(t.id) ?? {
+        id: t.id,
+        name: t.name,
+        color: t.color,
+        rs: [],
+        ss: [],
+        count: 0,
+      };
       agg.count++;
       if (i.status === "active" && i.card) {
         if (i.retrievability !== null) agg.rs.push(i.retrievability);
@@ -105,19 +136,36 @@ export async function getStats(now = new Date()): Promise<StatsData> {
   }
   const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
   const tagMastery = [...tagAgg.values()]
-    .map((a) => ({ id: a.id, name: a.name, color: a.color, count: a.count, meanR: mean(a.rs), meanS: mean(a.ss) }))
+    .map((a) => ({
+      id: a.id,
+      name: a.name,
+      color: a.color,
+      count: a.count,
+      meanR: mean(a.rs),
+      meanS: mean(a.ss),
+    }))
     .sort((a, b) => (a.meanR ?? 2) - (b.meanR ?? 2) || b.count - a.count);
 
   const diffOf = new Map(items.map((i) => [i.id, i.difficulty]));
   const resolveTime = (["easy", "medium", "hard"] as Difficulty[]).map((d) => {
-    const secs = logs.filter((l) => l.mode === "resolve" && l.seconds && diffOf.get(l.problemId) === d).map((l) => l.seconds!);
-    return { difficulty: d, avgMinutes: secs.length ? mean(secs)! / 60 : null, target: settings.resolveTimeTargetsMin[d], n: secs.length };
+    const secs = logs
+      .filter((l) => l.mode === "resolve" && l.seconds && diffOf.get(l.problemId) === d)
+      .map((l) => l.seconds!);
+    return {
+      difficulty: d,
+      avgMinutes: secs.length ? mean(secs)! / 60 : null,
+      target: settings.resolveTimeTargetsMin[d],
+      n: secs.length,
+    };
   });
 
   const days = daysUntilInterview(settings, now);
   let readiness: StatsData["readiness"] = null;
   if (settings.interviewDate && days !== null && days >= 0) {
-    const withPrediction = active.filter((i): i is ProblemListItem & { predictedInterviewRecall: number } => i.predictedInterviewRecall !== null);
+    const withPrediction = active.filter(
+      (i): i is ProblemListItem & { predictedInterviewRecall: number } =>
+        i.predictedInterviewRecall !== null,
+    );
     const recalls = withPrediction.map((i) => i.predictedInterviewRecall);
     readiness = {
       interviewDate: settings.interviewDate,
@@ -128,7 +176,13 @@ export async function getStats(now = new Date()): Promise<StatsData> {
       weakest: [...withPrediction]
         .sort((a, b) => a.predictedInterviewRecall - b.predictedInterviewRecall)
         .slice(0, 20)
-        .map((i) => ({ id: i.id, title: i.title, leetcodeNumber: i.leetcodeNumber, difficulty: i.difficulty, recall: i.predictedInterviewRecall })),
+        .map((i) => ({
+          id: i.id,
+          title: i.title,
+          leetcodeNumber: i.leetcodeNumber,
+          difficulty: i.difficulty,
+          recall: i.predictedInterviewRecall,
+        })),
       cardCount: active.length,
     };
   }

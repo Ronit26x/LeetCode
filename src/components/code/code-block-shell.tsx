@@ -32,13 +32,18 @@ export function CodeBlockShell({
 }) {
   const lines = code.split("\n").length;
   return (
-    <div className={cn("code-block overflow-hidden rounded-md border border-border bg-sunken/60", className)}>
+    <div
+      className={cn(
+        "code-block overflow-hidden rounded-md border border-border bg-sunken/60",
+        className,
+      )}
+    >
       {!compact || label ? (
         <div className="flex h-8 items-center gap-2 border-b border-border px-3 text-2xs text-fg-muted">
           {label ? <span className="font-medium text-foreground">{label}</span> : null}
           <span>{LANGUAGE_LABEL[language ?? "text"] ?? language}</span>
           <span className="text-fg-subtle">{lines} lines</span>
-          <CopyButton text={code} className="ml-auto -mr-1.5" />
+          <CopyButton text={code} className="-mr-1.5 ml-auto" />
         </div>
       ) : (
         <CopyButton text={code} className="absolute top-1 right-1" />

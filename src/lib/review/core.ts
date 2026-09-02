@@ -26,7 +26,12 @@ export interface GradeResult {
 export class ReviewError extends Error {}
 
 /** The interval each grade would schedule, from f.repeat, with the same `now` the grade will use. */
-export async function previewFor(db: Db, settings: Settings, problemId: string, now: Date): Promise<GradePreview> {
+export async function previewFor(
+  db: Db,
+  settings: Settings,
+  problemId: string,
+  now: Date,
+): Promise<GradePreview> {
   const row = await db.query.cards.findFirst({ where: eq(cards.problemId, problemId) });
   if (!row) throw new ReviewError("This problem has no card yet.");
   const { f } = schedulerForNow(settings, now);
@@ -40,18 +45,33 @@ export async function previewFor(db: Db, settings: Settings, problemId: string, 
  * One grade: f.next, then card + log + counter in a single transaction.
  * A repeated client_review_id returns the existing result instead of grading twice.
  */
-export async function applyGrade(db: Db, settings: Settings, input: GradeCoreInput, at: Date): Promise<GradeResult> {
-  const existing = await db.query.reviewLogs.findFirst({ where: eq(reviewLogs.clientReviewId, input.clientReviewId) });
+export async function applyGrade(
+  db: Db,
+  settings: Settings,
+  input: GradeCoreInput,
+  at: Date,
+): Promise<GradeResult> {
+  const existing = await db.query.reviewLogs.findFirst({
+    where: eq(reviewLogs.clientReviewId, input.clientReviewId),
+  });
   if (existing) {
     const card = await db.query.cards.findFirst({ where: eq(cards.problemId, existing.problemId) });
-    return { logId: existing.id, scheduledDays: existing.resultScheduledDays, due: card?.due ?? existing.due, duplicate: true };
+    return {
+      logId: existing.id,
+      scheduledDays: existing.resultScheduledDays,
+      due: card?.due ?? existing.due,
+      duplicate: true,
+    };
   }
   const { f } = schedulerForNow(settings, at);
   return db.transaction(async (tx) => {
     const row = await tx.query.cards.findFirst({ where: eq(cards.problemId, input.problemId) });
     if (!row) throw new ReviewError("This problem has no card yet.");
     const { card, log } = f.next(rowToCard(row), at, input.rating);
-    await tx.update(cards).set({ ...cardToRow(card), updatedAt: at }).where(eq(cards.problemId, input.problemId));
+    await tx
+      .update(cards)
+      .set({ ...cardToRow(card), updatedAt: at })
+      .where(eq(cards.problemId, input.problemId));
     const [inserted] = await tx
       .insert(reviewLogs)
       .values({
@@ -73,12 +93,22 @@ export async function applyGrade(db: Db, settings: Settings, input: GradeCoreInp
       patch.pitfalls = sql`case when ${problems.pitfalls} = '' then ${line} else ${problems.pitfalls} || ${"\n" + line} end`;
     }
     await tx.update(problems).set(patch).where(eq(problems.id, input.problemId));
-    return { logId: inserted.id, scheduledDays: card.scheduled_days, due: card.due, duplicate: false };
+    return {
+      logId: inserted.id,
+      scheduledDays: card.scheduled_days,
+      due: card.due,
+      duplicate: false,
+    };
   });
 }
 
 /** Undo the most recent grade of a problem: f.rollback, restore the card, mark the log undone, fix the counter. */
-export async function applyUndo(db: Db, settings: Settings, logId: string, now: Date): Promise<{ problemId: string }> {
+export async function applyUndo(
+  db: Db,
+  settings: Settings,
+  logId: string,
+  now: Date,
+): Promise<{ problemId: string }> {
   return db.transaction(async (tx) => {
     const log = await tx.query.reviewLogs.findFirst({ where: eq(reviewLogs.id, logId) });
     if (!log) throw new ReviewError("Nothing to undo.");
@@ -87,14 +117,18 @@ export async function applyUndo(db: Db, settings: Settings, logId: string, now: 
       where: and(eq(reviewLogs.problemId, log.problemId), isNull(reviewLogs.undoneAt)),
       orderBy: [desc(reviewLogs.reviewedAt), desc(reviewLogs.createdAt)],
     });
-    if (!latest || latest.id !== log.id) throw new ReviewError("Only the most recent grade can be undone.");
+    if (!latest || latest.id !== log.id)
+      throw new ReviewError("Only the most recent grade can be undone.");
     const row = await tx.query.cards.findFirst({ where: eq(cards.problemId, log.problemId) });
     if (!row) throw new ReviewError("Card not found.");
     const { f } = schedulerForNow(settings, now);
     const prev = f.rollback(rowToCard(row), rowToLog(log));
     // rollback sets due to the review instant; the snapshot restores the real previous due.
     if (log.prevDue) prev.due = log.prevDue;
-    await tx.update(cards).set({ ...cardToRow(prev), updatedAt: now }).where(eq(cards.problemId, log.problemId));
+    await tx
+      .update(cards)
+      .set({ ...cardToRow(prev), updatedAt: now })
+      .where(eq(cards.problemId, log.problemId));
     await tx.update(reviewLogs).set({ undoneAt: now }).where(eq(reviewLogs.id, log.id));
     const previous = await tx.query.reviewLogs.findFirst({
       where: and(
@@ -116,7 +150,12 @@ export async function applyUndo(db: Db, settings: Settings, logId: string, now: 
 }
 
 /** Attach the optional "what went wrong" note after an Again or Hard, optionally appending it to pitfalls. */
-export async function annotateLog(db: Db, logId: string, note: string, appendToPitfalls: boolean): Promise<void> {
+export async function annotateLog(
+  db: Db,
+  logId: string,
+  note: string,
+  appendToPitfalls: boolean,
+): Promise<void> {
   await db.transaction(async (tx) => {
     const log = await tx.query.reviewLogs.findFirst({ where: eq(reviewLogs.id, logId) });
     if (!log) throw new ReviewError("Log not found.");

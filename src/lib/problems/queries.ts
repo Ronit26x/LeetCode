@@ -126,7 +126,13 @@ async function lastRatings(problemIds: string[]): Promise<Map<string, number>> {
       rating: reviewLogs.rating,
     })
     .from(reviewLogs)
-    .where(and(inArray(reviewLogs.problemId, problemIds), isNull(reviewLogs.undoneAt), sql`${reviewLogs.rating} > 0`))
+    .where(
+      and(
+        inArray(reviewLogs.problemId, problemIds),
+        isNull(reviewLogs.undoneAt),
+        sql`${reviewLogs.rating} > 0`,
+      ),
+    )
     .orderBy(reviewLogs.problemId, desc(reviewLogs.reviewedAt), desc(reviewLogs.createdAt));
   return new Map(rows.map((r) => [r.problemId, r.rating]));
 }
@@ -139,7 +145,13 @@ async function gradedLogs(problemIds: string[]): Promise<Map<string, ReviewLogRo
   const rows = await db
     .select()
     .from(reviewLogs)
-    .where(and(inArray(reviewLogs.problemId, problemIds), isNull(reviewLogs.undoneAt), sql`${reviewLogs.rating} > 0`))
+    .where(
+      and(
+        inArray(reviewLogs.problemId, problemIds),
+        isNull(reviewLogs.undoneAt),
+        sql`${reviewLogs.rating} > 0`,
+      ),
+    )
     .orderBy(reviewLogs.reviewedAt, reviewLogs.createdAt);
   for (const r of rows) {
     const list = map.get(r.problemId) ?? [];
@@ -193,13 +205,25 @@ export async function enrichProblems(
         card && sched.interviewDate && (sched.daysUntilInterview ?? -1) >= 0
           ? predictedRecallOn(sched.f, card, sched.interviewDate)
           : null,
-      dueInDays: r.card ? reviewDaysUntil(ctx.now, r.card.due, ctx.settings.timezone, ctx.settings.dayStartHour) : null,
+      dueInDays: r.card
+        ? reviewDaysUntil(ctx.now, r.card.due, ctx.settings.timezone, ctx.settings.dayStartHour)
+        : null,
       suggestion:
         card && r.status === "active"
           ? suggestMode(
               { stability: card.stability, state: card.state },
-              problemLogs.map((l) => ({ mode: l.mode, rating: l.rating, stability: l.stability, reviewedAt: l.reviewedAt })),
-              { reviseCount: r.reviseCount, resolveCount: r.resolveCount, lastMode: r.lastMode, tags: tagList },
+              problemLogs.map((l) => ({
+                mode: l.mode,
+                rating: l.rating,
+                stability: l.stability,
+                reviewedAt: l.reviewedAt,
+              })),
+              {
+                reviseCount: r.reviseCount,
+                resolveCount: r.resolveCount,
+                lastMode: r.lastMode,
+                tags: tagList,
+              },
               ctx.settings,
             )
           : null,
@@ -211,7 +235,8 @@ function matchesQuery(p: Problem & { problemTags: { tag: Tag }[] }, q: string): 
   const needle = q.trim().toLowerCase();
   if (!needle) return true;
   const asNumber = Number.parseInt(needle, 10);
-  if (Number.isFinite(asNumber) && String(asNumber) === needle && p.leetcodeNumber === asNumber) return true;
+  if (Number.isFinite(asNumber) && String(asNumber) === needle && p.leetcodeNumber === asNumber)
+    return true;
   const hay = [p.title, p.slug, p.promptSummary, p.keyInsight, p.approach, p.pitfalls, p.notes]
     .join("\n")
     .toLowerCase();
@@ -219,7 +244,10 @@ function matchesQuery(p: Problem & { problemTags: { tag: Tag }[] }, q: string): 
   return p.problemTags.some((pt) => pt.tag.name.toLowerCase().includes(needle));
 }
 
-export async function listProblems(filters: ListFilters = {}, now = new Date()): Promise<ProblemListItem[]> {
+export async function listProblems(
+  filters: ListFilters = {},
+  now = new Date(),
+): Promise<ProblemListItem[]> {
   const db = await getDb();
   const settings = await getSettings();
   const status = filters.status ?? "all";
@@ -237,7 +265,8 @@ export async function listProblems(filters: ListFilters = {}, now = new Date()):
   if (filters.memory) items = items.filter((i) => i.memoryState === filters.memory);
   const dir = filters.dir === "desc" ? -1 : 1;
   const key = filters.sort ?? "due";
-  const nul = (v: number | null | undefined) => (v === null || v === undefined ? Number.POSITIVE_INFINITY : v);
+  const nul = (v: number | null | undefined) =>
+    v === null || v === undefined ? Number.POSITIVE_INFINITY : v;
   items.sort((a, b) => {
     let c = 0;
     switch (key) {
@@ -281,12 +310,23 @@ export async function listProblems(filters: ListFilters = {}, now = new Date()):
 export interface ProblemDetail extends Problem {
   snippets: Snippet[];
   tags: TagBrief[];
-  related: { id: string; title: string; leetcodeNumber: number | null; difficulty: Difficulty; status: ProblemStatus }[];
+  related: {
+    id: string;
+    title: string;
+    leetcodeNumber: number | null;
+    difficulty: Difficulty;
+    status: ProblemStatus;
+  }[];
   card: CardRow | null;
   logs: ReviewLogRow[];
   computed: Pick<
     ProblemListItem,
-    "lastRating" | "memoryState" | "retrievability" | "predictedInterviewRecall" | "dueInDays" | "suggestion"
+    | "lastRating"
+    | "memoryState"
+    | "retrievability"
+    | "predictedInterviewRecall"
+    | "dueInDays"
+    | "suggestion"
   >;
 }
 
@@ -331,7 +371,9 @@ export async function getProblem(id: string, now = new Date()): Promise<ProblemD
 
 export async function listTags(): Promise<TagBrief[]> {
   const db = await getDb();
-  const rows = await db.query.tags.findMany({ orderBy: (t, { asc }) => [asc(t.sortOrder), asc(t.name)] });
+  const rows = await db.query.tags.findMany({
+    orderBy: (t, { asc }) => [asc(t.sortOrder), asc(t.name)],
+  });
   return rows.map(toTagBrief);
 }
 

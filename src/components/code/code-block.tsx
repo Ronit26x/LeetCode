@@ -14,5 +14,13 @@ export async function CodeBlock({
   className?: string;
 }) {
   const html = await highlightCode(code, language);
-  return <CodeBlockShell code={code} html={html} label={label} language={language} className={className} />;
+  return (
+    <CodeBlockShell
+      code={code}
+      html={html}
+      label={label}
+      language={language}
+      className={className}
+    />
+  );
 }

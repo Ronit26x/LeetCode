@@ -3,7 +3,14 @@
 import * as React from "react";
 import { Plus, X } from "@phosphor-icons/react/dist/ssr";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { DifficultyBadge } from "@/components/common/badges";
 import { searchProblems } from "@/lib/problems/actions";
 import type { ProblemBrief } from "@/lib/problems/queries";
@@ -57,7 +64,9 @@ export function ProblemPicker({
         <ul className="flex flex-col divide-y divide-border rounded-md border border-border">
           {value.map((p) => (
             <li key={p.id} className="flex h-9 items-center gap-2 px-2.5 text-sm">
-              {p.leetcodeNumber ? <span className="w-10 text-fg-subtle">{p.leetcodeNumber}</span> : null}
+              {p.leetcodeNumber ? (
+                <span className="w-10 text-fg-subtle">{p.leetcodeNumber}</span>
+              ) : null}
               <span className="flex-1 truncate">{p.title}</span>
               <DifficultyBadge difficulty={p.difficulty} plain />
               <button
@@ -79,13 +88,19 @@ export function ProblemPicker({
         </PopoverTrigger>
         <PopoverContent align="start" className="w-80 p-0">
           <Command shouldFilter={false}>
-            <CommandInput placeholder="Search by title or number" value={query} onValueChange={setQuery} />
+            <CommandInput
+              placeholder="Search by title or number"
+              value={query}
+              onValueChange={setQuery}
+            />
             <CommandList className="max-h-64">
               <CommandEmpty>{loading ? "Searching" : "No match in your library."}</CommandEmpty>
               <CommandGroup>
                 {results.map((p) => (
                   <CommandItem key={p.id} value={p.id} onSelect={() => add(p)}>
-                    {p.leetcodeNumber ? <span className="w-10 text-right text-fg-subtle">{p.leetcodeNumber}</span> : null}
+                    {p.leetcodeNumber ? (
+                      <span className="w-10 text-right text-fg-subtle">{p.leetcodeNumber}</span>
+                    ) : null}
                     <span className="flex-1 truncate">{p.title}</span>
                     <DifficultyBadge difficulty={p.difficulty} plain />
                   </CommandItem>

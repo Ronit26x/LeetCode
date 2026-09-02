@@ -19,7 +19,10 @@ export function NativeSelect({
       >
         {children}
       </select>
-      <CaretDown size={12} className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-fg-subtle" />
+      <CaretDown
+        size={12}
+        className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-fg-subtle"
+      />
     </span>
   );
 }

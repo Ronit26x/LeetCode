@@ -13,7 +13,10 @@ let db: Db;
 const DAY = 86_400_000;
 
 async function makeProblem(slug: string) {
-  const [p] = await db.insert(problems).values({ slug, title: slug, difficulty: "medium" }).returning();
+  const [p] = await db
+    .insert(problems)
+    .values({ slug, title: slug, difficulty: "medium" })
+    .returning();
   return p;
 }
 
@@ -27,7 +30,10 @@ describe("grading", () => {
     const p = await makeProblem("first-solve");
     const t0 = new Date("2026-09-01T17:00:00Z");
     await db.transaction((tx) => applyFirstSolve(tx, p.id, Rating.Good, t0, settings));
-    const row = (await db.query.problems.findFirst({ where: eq(problems.id, p.id), with: { card: true } }))!;
+    const row = (await db.query.problems.findFirst({
+      where: eq(problems.id, p.id),
+      with: { card: true },
+    }))!;
     expect(row.status).toBe("active");
     expect(row.resolveCount).toBe(1);
     expect(row.reviseCount).toBe(0);
@@ -50,12 +56,23 @@ describe("grading", () => {
     const res = await applyGrade(
       db,
       settings,
-      { problemId: p.id, clientReviewId: randomUUID(), rating: Rating.Good, mode: "revise", durationSeconds: null, note: null, appendNoteToPitfalls: false },
+      {
+        problemId: p.id,
+        clientReviewId: randomUUID(),
+        rating: Rating.Good,
+        mode: "revise",
+        durationSeconds: null,
+        note: null,
+        appendNoteToPitfalls: false,
+      },
       t1,
     );
     expect(res.duplicate).toBe(false);
     expect(res.scheduledDays).toBe(preview[3]);
-    const row = (await db.query.problems.findFirst({ where: eq(problems.id, p.id), with: { card: true } }))!;
+    const row = (await db.query.problems.findFirst({
+      where: eq(problems.id, p.id),
+      with: { card: true },
+    }))!;
     expect(row.reviseCount).toBe(1);
     expect(row.resolveCount).toBe(1);
     expect(row.lastMode).toBe("revise");
@@ -68,7 +85,15 @@ describe("grading", () => {
     const t0 = new Date("2026-09-01T17:00:00Z");
     await db.transaction((tx) => applyFirstSolve(tx, p.id, Rating.Good, t0, settings));
     const id = randomUUID();
-    const input = { problemId: p.id, clientReviewId: id, rating: Rating.Hard as const, mode: "resolve" as const, durationSeconds: 900, note: null, appendNoteToPitfalls: false };
+    const input = {
+      problemId: p.id,
+      clientReviewId: id,
+      rating: Rating.Hard as const,
+      mode: "resolve" as const,
+      durationSeconds: 900,
+      note: null,
+      appendNoteToPitfalls: false,
+    };
     const a = await applyGrade(db, settings, input, new Date(t0.getTime() + 3 * DAY));
     const b = await applyGrade(db, settings, input, new Date(t0.getTime() + 3 * DAY + 5000));
     expect(b.duplicate).toBe(true);
@@ -89,15 +114,29 @@ describe("grading", () => {
     const res = await applyGrade(
       db,
       settings,
-      { problemId: p.id, clientReviewId: randomUUID(), rating: Rating.Again, mode: "revise", durationSeconds: null, note: null, appendNoteToPitfalls: false },
+      {
+        problemId: p.id,
+        clientReviewId: randomUUID(),
+        rating: Rating.Again,
+        mode: "revise",
+        durationSeconds: null,
+        note: null,
+        appendNoteToPitfalls: false,
+      },
       t1,
     );
-    let row = (await db.query.problems.findFirst({ where: eq(problems.id, p.id), with: { card: true } }))!;
+    let row = (await db.query.problems.findFirst({
+      where: eq(problems.id, p.id),
+      with: { card: true },
+    }))!;
     expect(row.reviseCount).toBe(1);
     expect(row.card?.lapses).toBe(1);
 
     await applyUndo(db, settings, res.logId, new Date(t1.getTime() + 60_000));
-    row = (await db.query.problems.findFirst({ where: eq(problems.id, p.id), with: { card: true } }))!;
+    row = (await db.query.problems.findFirst({
+      where: eq(problems.id, p.id),
+      with: { card: true },
+    }))!;
     expect(row.reviseCount).toBe(0);
     expect(row.lastMode).toBe("resolve");
     expect(row.card?.due.getTime()).toBe(before.due.getTime());
@@ -115,8 +154,34 @@ describe("grading", () => {
     const p = await makeProblem("undo-order");
     const t0 = new Date("2026-09-01T17:00:00Z");
     await db.transaction((tx) => applyFirstSolve(tx, p.id, Rating.Good, t0, settings));
-    const a = await applyGrade(db, settings, { problemId: p.id, clientReviewId: randomUUID(), rating: Rating.Good, mode: "revise", durationSeconds: null, note: null, appendNoteToPitfalls: false }, new Date(t0.getTime() + 3 * DAY));
-    await applyGrade(db, settings, { problemId: p.id, clientReviewId: randomUUID(), rating: Rating.Good, mode: "revise", durationSeconds: null, note: null, appendNoteToPitfalls: false }, new Date(t0.getTime() + 9 * DAY));
+    const a = await applyGrade(
+      db,
+      settings,
+      {
+        problemId: p.id,
+        clientReviewId: randomUUID(),
+        rating: Rating.Good,
+        mode: "revise",
+        durationSeconds: null,
+        note: null,
+        appendNoteToPitfalls: false,
+      },
+      new Date(t0.getTime() + 3 * DAY),
+    );
+    await applyGrade(
+      db,
+      settings,
+      {
+        problemId: p.id,
+        clientReviewId: randomUUID(),
+        rating: Rating.Good,
+        mode: "revise",
+        durationSeconds: null,
+        note: null,
+        appendNoteToPitfalls: false,
+      },
+      new Date(t0.getTime() + 9 * DAY),
+    );
     await expect(applyUndo(db, settings, a.logId, new Date())).rejects.toThrow(/most recent/);
   });
 
@@ -125,7 +190,20 @@ describe("grading", () => {
     const p = await makeProblem("note");
     const t0 = new Date("2026-09-01T17:00:00Z");
     await db.transaction((tx) => applyFirstSolve(tx, p.id, Rating.Good, t0, settings));
-    const res = await applyGrade(db, settings, { problemId: p.id, clientReviewId: randomUUID(), rating: Rating.Hard, mode: "resolve", durationSeconds: 1200, note: null, appendNoteToPitfalls: false }, new Date(t0.getTime() + 3 * DAY));
+    const res = await applyGrade(
+      db,
+      settings,
+      {
+        problemId: p.id,
+        clientReviewId: randomUUID(),
+        rating: Rating.Hard,
+        mode: "resolve",
+        durationSeconds: 1200,
+        note: null,
+        appendNoteToPitfalls: false,
+      },
+      new Date(t0.getTime() + 3 * DAY),
+    );
     await annotateLog(db, res.logId, "Forgot to handle the empty array", true);
     const row = (await db.query.problems.findFirst({ where: eq(problems.id, p.id) }))!;
     expect(row.pitfalls).toBe("- Forgot to handle the empty array");

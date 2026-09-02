@@ -15,7 +15,11 @@ import { eq } from "drizzle-orm";
 
 export const metadata: Metadata = { title: "Session" };
 
-export default async function ReviewPage({ searchParams }: { searchParams: Promise<{ i?: string; problem?: string }> }) {
+export default async function ReviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ i?: string; problem?: string }>;
+}) {
   const { i, problem } = await searchParams;
   const now = new Date();
   const settings = await getSettings();
@@ -31,7 +35,10 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
 
   if (problem) {
     // "Review now": a single early review. Suspended cards can be reviewed too.
-    const row = await db.query.problems.findFirst({ where: eq(problems.id, problem), with: { card: true, problemTags: { with: { tag: true } } } });
+    const row = await db.query.problems.findFirst({
+      where: eq(problems.id, problem),
+      with: { card: true, problemTags: { with: { tag: true } } },
+    });
     if (!row || !row.card) notFound();
     const [item] = await enrichProblems([row], { settings, now });
     suggestion = item.suggestion;
@@ -44,13 +51,25 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
     const due = new Map(q.items.map((it) => [it.id, it]));
     const requested = Math.max(0, Number.parseInt(i ?? "0", 10) || 0);
     let found = -1;
-    for (let k = requested; k < order.length; k++) if (due.has(order[k])) { found = k; break; }
-    if (found === -1) for (let k = 0; k < requested && k < order.length; k++) if (due.has(order[k])) { found = k; break; }
+    for (let k = requested; k < order.length; k++)
+      if (due.has(order[k])) {
+        found = k;
+        break;
+      }
+    if (found === -1)
+      for (let k = 0; k < requested && k < order.length; k++)
+        if (due.has(order[k])) {
+          found = k;
+          break;
+        }
     total = order.length;
     done = order.filter((id) => !due.has(id)).length;
     if (found === -1) {
       const againTitles = q.stats.doneToday.againIds.length
-        ? await db.select({ id: problems.id, title: problems.title }).from(problems).where(inArray(problems.id, q.stats.doneToday.againIds))
+        ? await db
+            .select({ id: problems.id, title: problems.title })
+            .from(problems)
+            .where(inArray(problems.id, q.stats.doneToday.againIds))
         : [];
       return <SessionSummary stats={q.stats} againTitles={againTitles} />;
     }
@@ -76,7 +95,12 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
     spaceComplexity: p.spaceComplexity,
     pitfalls: p.pitfalls,
     notes: p.notes,
-    snippets: p.snippets.map((s) => ({ id: s.id, label: s.label, language: s.language, code: s.code })),
+    snippets: p.snippets.map((s) => ({
+      id: s.id,
+      label: s.label,
+      language: s.language,
+      code: s.code,
+    })),
     tagIds: p.tags.map((t) => t.id),
     newTags: [],
     related: p.related,
@@ -101,7 +125,14 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
       nextHref={nextHref}
       front={
         <CardFront
-          data={{ title: p.title, leetcodeNumber: p.leetcodeNumber, difficulty: p.difficulty, url: p.url, promptSummary: p.promptSummary, tags: p.tags }}
+          data={{
+            title: p.title,
+            leetcodeNumber: p.leetcodeNumber,
+            difficulty: p.difficulty,
+            url: p.url,
+            promptSummary: p.promptSummary,
+            tags: p.tags,
+          }}
         />
       }
       back={

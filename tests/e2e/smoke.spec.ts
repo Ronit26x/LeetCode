@@ -19,7 +19,11 @@ test("theme choice survives a reload without a flash", async ({ page }) => {
   await page.locator("#main").getByRole("radio", { name: "Light" }).click();
 });
 
-test("add from a URL, solve, review early, grade, undo, and copy code with tabs", async ({ page, context, browserName }) => {
+test("add from a URL, solve, review early, grade, undo, and copy code with tabs", async ({
+  page,
+  context,
+  browserName,
+}) => {
   await login(page);
 
   const slug = `two-sum-${browserName}-${Date.now().toString(36)}`;
@@ -30,8 +34,12 @@ test("add from a URL, solve, review early, grade, undo, and copy code with tabs"
   await expect(page.getByLabel("Number")).toHaveValue("1");
   await expect(page.getByText("Arrays & Hashing").first()).toBeVisible();
 
-  await page.getByLabel("Prompt summary").fill("Indices of the two numbers that add up to the target.");
-  await page.getByLabel("Key insight").fill("Look up the complement in a hash map before inserting.");
+  await page
+    .getByLabel("Prompt summary")
+    .fill("Indices of the two numbers that add up to the target.");
+  await page
+    .getByLabel("Key insight")
+    .fill("Look up the complement in a hash map before inserting.");
   const editor = page.locator(".cm-content").first();
   await editor.click();
   await page.keyboard.insertText("int f() {\n\treturn 1;\n}");
@@ -43,12 +51,29 @@ test("add from a URL, solve, review early, grade, undo, and copy code with tabs"
 
   // Scheduled: resolved once, due a few days out, listed in the library with a due date.
   await expect(page.getByText("Resolved").first()).toBeVisible();
-  await expect(page.locator("dt", { hasText: /^Resolved$/ }).locator("xpath=following-sibling::dd").first()).toHaveText("1");
+  await expect(
+    page
+      .locator("dt", { hasText: /^Resolved$/ })
+      .locator("xpath=following-sibling::dd")
+      .first(),
+  ).toHaveText("1");
   await page.goto("/problems");
-  await expect(page.getByText(/Two Sum/).filter({ visible: true }).first()).toBeVisible();
-  await expect(page.getByText(/in \d+d|tomorrow|today/).filter({ visible: true }).first()).toBeVisible();
+  await expect(
+    page
+      .getByText(/Two Sum/)
+      .filter({ visible: true })
+      .first(),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByText(/in \d+d|tomorrow|today/)
+      .filter({ visible: true })
+      .first(),
+  ).toBeVisible();
   await page.goto("/today");
-  await expect(page.getByText(/1 card due tomorrow|\d+ cards? due tomorrow|Nothing due/).first()).toBeVisible();
+  await expect(
+    page.getByText(/1 card due tomorrow|\d+ cards? due tomorrow|Nothing due/).first(),
+  ).toBeVisible();
 
   // Early review through the session: flip with Space, grade Good with the key 3.
   await page.goto(problemUrl);
@@ -62,7 +87,11 @@ test("add from a URL, solve, review early, grade, undo, and copy code with tabs"
   await page.keyboard.press("3");
   await page.waitForURL(/\/problems\/[0-9a-f-]{36}$/);
   await expect(page.getByText("Revised").first()).toBeVisible();
-  const revised = () => page.locator("dt", { hasText: /^Revised$/ }).locator("xpath=following-sibling::dd").first();
+  const revised = () =>
+    page
+      .locator("dt", { hasText: /^Revised$/ })
+      .locator("xpath=following-sibling::dd")
+      .first();
   await expect(revised()).toHaveText("1");
 
   // Undo from the session restores the counter.

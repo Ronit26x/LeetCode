@@ -14,7 +14,12 @@ export function PageHeader({
   children?: React.ReactNode;
 }) {
   return (
-    <header className={cn("mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between", className)}>
+    <header
+      className={cn(
+        "mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between",
+        className,
+      )}
+    >
       <div className="min-w-0">
         <h1 className="display text-2xl leading-8 text-foreground">{title}</h1>
         {description ? <p className="mt-1 text-sm text-fg-muted">{description}</p> : null}

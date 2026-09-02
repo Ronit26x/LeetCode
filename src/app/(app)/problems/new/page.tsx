@@ -9,7 +9,10 @@ export default async function NewProblemPage() {
   const tags = await listTags();
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Add problem" description="Paste the LeetCode link, write the card, pick an outcome." />
+      <PageHeader
+        title="Add problem"
+        description="Paste the LeetCode link, write the card, pick an outcome."
+      />
       <ProblemForm mode="create" tags={tags} />
     </div>
   );

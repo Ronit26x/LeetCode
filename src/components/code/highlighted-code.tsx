@@ -36,5 +36,13 @@ export function HighlightedCode({
       cancelled = true;
     };
   }, [code, language]);
-  return <CodeBlockShell code={code} html={html ?? plainHtml(code)} label={label} language={language} compact={compact} />;
+  return (
+    <CodeBlockShell
+      code={code}
+      html={html ?? plainHtml(code)}
+      label={label}
+      language={language}
+      compact={compact}
+    />
+  );
 }

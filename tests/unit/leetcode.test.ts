@@ -7,7 +7,9 @@ describe("parseLeetCodeInput", () => {
       slug: "two-sum",
       url: "https://leetcode.com/problems/two-sum/",
     });
-    expect(parseLeetCodeInput("leetcode.com/problems/Two-Sum/description/?envType=daily")?.slug).toBe("two-sum");
+    expect(
+      parseLeetCodeInput("leetcode.com/problems/Two-Sum/description/?envType=daily")?.slug,
+    ).toBe("two-sum");
     expect(parseLeetCodeInput("  lru-cache ")?.slug).toBe("lru-cache");
     expect(parseLeetCodeInput("https://leetcode.cn/problems/3sum/solutions/")?.slug).toBe("3sum");
   });
@@ -25,7 +27,17 @@ describe("mapTopicTags", () => {
     { id: "3", name: "BFS/DFS" },
   ];
   it("matches directly, through synonyms, and dedupes", () => {
-    const r = mapTopicTags(["Array", "Hash Table", "Binary Tree", "Depth-First Search", "Breadth-First Search", "String"], existing);
+    const r = mapTopicTags(
+      [
+        "Array",
+        "Hash Table",
+        "Binary Tree",
+        "Depth-First Search",
+        "Breadth-First Search",
+        "String",
+      ],
+      existing,
+    );
     expect(r.matched.map((t) => t.name)).toEqual(["Arrays & Hashing", "Trees", "BFS/DFS"]);
     expect(r.unmatched).toEqual(["String"]);
   });

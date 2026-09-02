@@ -90,10 +90,11 @@ export function SegmentedControl<T extends string>({
               heights,
               text,
               fullWidth && "flex-1",
-              opt.iconOnly && "px-0 min-w-8",
+              opt.iconOnly && "min-w-8 px-0",
               "hover:text-foreground focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-2px]",
               "disabled:cursor-not-allowed disabled:opacity-40",
-              selected && "bg-surface text-foreground shadow-[0_1px_1px_oklch(0_0_0/0.06)] ring-1 ring-border",
+              selected &&
+                "bg-surface text-foreground shadow-[0_1px_1px_oklch(0_0_0/0.06)] ring-1 ring-border",
             )}
           >
             {opt.icon}

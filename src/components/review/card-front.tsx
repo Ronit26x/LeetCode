@@ -13,7 +13,15 @@ export interface CardFrontData {
 }
 
 /** Title, number, difficulty, tags, link, and the user's own restatement. Nothing else, ever. */
-export function CardFront({ data, className, compact }: { data: CardFrontData; className?: string; compact?: boolean }) {
+export function CardFront({
+  data,
+  className,
+  compact,
+}: {
+  data: CardFrontData;
+  className?: string;
+  compact?: boolean;
+}) {
   return (
     <div className={cn("flex flex-col gap-4", className)}>
       <div className="flex flex-wrap items-center gap-2 text-2xs text-fg-muted">
@@ -33,7 +41,9 @@ export function CardFront({ data, className, compact }: { data: CardFrontData; c
           </a>
         ) : null}
       </div>
-      <h2 className={cn("display leading-tight", compact ? "text-2xl" : "text-3xl")}>{data.title}</h2>
+      <h2 className={cn("display leading-tight", compact ? "text-2xl" : "text-3xl")}>
+        {data.title}
+      </h2>
       {data.promptSummary ? (
         <p className="text-base leading-7 text-foreground">{data.promptSummary}</p>
       ) : (

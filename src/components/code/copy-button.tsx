@@ -6,12 +6,23 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 /** Copies the raw source passed in as a prop, never the rendered DOM. */
-export function CopyButton({ text, className, label = "Copy code" }: { text: string; className?: string; label?: string }) {
+export function CopyButton({
+  text,
+  className,
+  label = "Copy code",
+}: {
+  text: string;
+  className?: string;
+  label?: string;
+}) {
   const [copied, setCopied] = React.useState(false);
   const timer = React.useRef<number | null>(null);
-  React.useEffect(() => () => {
-    if (timer.current) window.clearTimeout(timer.current);
-  }, []);
+  React.useEffect(
+    () => () => {
+      if (timer.current) window.clearTimeout(timer.current);
+    },
+    [],
+  );
 
   async function copy() {
     try {

@@ -34,7 +34,8 @@ export function ResolveTimer({
   const base = React.useRef(0);
 
   const read = React.useCallback(() => {
-    if (startedAt.current !== null) return base.current + Math.floor((Date.now() - startedAt.current) / 1000);
+    if (startedAt.current !== null)
+      return base.current + Math.floor((Date.now() - startedAt.current) / 1000);
     return base.current;
   }, []);
 
@@ -78,7 +79,11 @@ export function ResolveTimer({
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
-      <div className="flex items-center rounded-md border border-border bg-sunken p-0.5" role="group" aria-label="Time target">
+      <div
+        className="flex items-center rounded-md border border-border bg-sunken p-0.5"
+        role="group"
+        aria-label="Time target"
+      >
         {presets.map((m) => (
           <button
             key={m}
@@ -107,7 +112,12 @@ export function ResolveTimer({
         <span>{fmt(remaining)}</span>
       </button>
       {elapsed > 0 ? (
-        <button type="button" onClick={reset} aria-label="Reset timer" className="inline-flex size-8 items-center justify-center rounded-md text-fg-muted hover:bg-hover hover:text-foreground">
+        <button
+          type="button"
+          onClick={reset}
+          aria-label="Reset timer"
+          className="inline-flex size-8 items-center justify-center rounded-md text-fg-muted hover:bg-hover hover:text-foreground"
+        >
           <ArrowCounterClockwise size={14} />
         </button>
       ) : null}

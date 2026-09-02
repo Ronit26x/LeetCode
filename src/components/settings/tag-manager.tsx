@@ -3,12 +3,31 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, DotsThree, Plus, Trash, GitMerge } from "@phosphor-icons/react/dist/ssr";
+import {
+  ArrowDown,
+  ArrowUp,
+  DotsThree,
+  Plus,
+  Trash,
+  GitMerge,
+} from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/common/native-select";
 import { inputClass } from "@/components/common/field";
 import { TAG_DOT_CLASSES } from "@/components/common/badges";
@@ -28,7 +47,10 @@ const KINDS: { value: TagKind; label: string }[] = [
 function ColorPicker({ value, onChange }: { value: TagColor; onChange: (c: TagColor) => void }) {
   return (
     <Popover>
-      <PopoverTrigger className="flex size-7 items-center justify-center rounded-md hover:bg-hover" aria-label={`Color: ${value}`}>
+      <PopoverTrigger
+        className="flex size-7 items-center justify-center rounded-md hover:bg-hover"
+        aria-label={`Color: ${value}`}
+      >
         <span className={cn("size-3 rounded-full", TAG_DOT_CLASSES[value])} />
       </PopoverTrigger>
       <PopoverContent align="start" className="grid w-auto grid-cols-6 gap-1 p-2">
@@ -38,7 +60,10 @@ function ColorPicker({ value, onChange }: { value: TagColor; onChange: (c: TagCo
             type="button"
             aria-label={c}
             onClick={() => onChange(c)}
-            className={cn("flex size-7 items-center justify-center rounded-md hover:bg-hover", c === value && "ring-1 ring-border-strong")}
+            className={cn(
+              "flex size-7 items-center justify-center rounded-md hover:bg-hover",
+              c === value && "ring-1 ring-border-strong",
+            )}
           >
             <span className={cn("size-3.5 rounded-full", TAG_DOT_CLASSES[c])} />
           </button>
@@ -90,24 +115,42 @@ function TagRow({
           if (e.key === "Escape") setName(tag.name);
         }}
         aria-label="Tag name"
-        className={cn(inputClass, "h-8 min-w-0 flex-1 border-transparent bg-transparent hover:border-border focus:border-border")}
+        className={cn(
+          inputClass,
+          "h-8 min-w-0 flex-1 border-transparent bg-transparent hover:border-border focus:border-border",
+        )}
       />
-      <NativeSelect size="sm" value={tag.kind} onChange={(e) => save({ kind: e.target.value as TagKind })} aria-label="Kind" className="w-24">
+      <NativeSelect
+        size="sm"
+        value={tag.kind}
+        onChange={(e) => save({ kind: e.target.value as TagKind })}
+        aria-label="Kind"
+        className="w-24"
+      >
         {KINDS.map((k) => (
           <option key={k.value} value={k.value}>
             {k.label}
           </option>
         ))}
       </NativeSelect>
-      <label className="hidden items-center gap-1.5 text-2xs text-fg-muted sm:flex" title="Suggest Resolve for every review of problems with this tag">
-        <Switch checked={tag.alwaysResolve} onCheckedChange={(v) => save({ alwaysResolve: v })} aria-label="Always resolve" />
+      <label
+        className="hidden items-center gap-1.5 text-2xs text-fg-muted sm:flex"
+        title="Suggest Resolve for every review of problems with this tag"
+      >
+        <Switch
+          checked={tag.alwaysResolve}
+          onCheckedChange={(v) => save({ alwaysResolve: v })}
+          aria-label="Always resolve"
+        />
         Resolve
       </label>
       <span className="w-8 text-right text-2xs text-fg-subtle" title="Problems with this tag">
         {tag.total}
       </span>
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={`Actions for ${tag.name}`} />}>
+        <DropdownMenuTrigger
+          render={<Button variant="ghost" size="icon-sm" aria-label={`Actions for ${tag.name}`} />}
+        >
           <DotsThree size={16} weight="bold" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -219,8 +262,20 @@ export function TagManager({ tags }: { tags: TagWithCounts[] }) {
           add();
         }}
       >
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="New tag" aria-label="New tag name" className={cn(inputClass, "h-8 flex-1")} />
-        <NativeSelect size="sm" value={kind} onChange={(e) => setKind(e.target.value as TagKind)} aria-label="New tag kind" className="w-24">
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="New tag"
+          aria-label="New tag name"
+          className={cn(inputClass, "h-8 flex-1")}
+        />
+        <NativeSelect
+          size="sm"
+          value={kind}
+          onChange={(e) => setKind(e.target.value as TagKind)}
+          aria-label="New tag kind"
+          className="w-24"
+        >
           {KINDS.map((k) => (
             <option key={k.value} value={k.value}>
               {k.label}
@@ -237,7 +292,8 @@ export function TagManager({ tags }: { tags: TagWithCounts[] }) {
         ))}
       </ul>
       <p className="text-2xs text-fg-subtle">
-        Order matters: a problem&apos;s primary topic is its first topic tag in this list. Resolve marks a tag whose problems are always re-solved instead of revised.
+        Order matters: a problem&apos;s primary topic is its first topic tag in this list. Resolve
+        marks a tag whose problems are always re-solved instead of revised.
       </p>
     </div>
   );

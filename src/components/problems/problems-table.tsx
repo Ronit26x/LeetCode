@@ -4,7 +4,14 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Archive, ArrowCounterClockwise, PauseCircle, Play, Tag, X } from "@phosphor-icons/react/dist/ssr";
+import {
+  Archive,
+  ArrowCounterClockwise,
+  PauseCircle,
+  Play,
+  Tag,
+  X,
+} from "@phosphor-icons/react/dist/ssr";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -20,11 +27,25 @@ import {
 } from "@/components/ui/alert-dialog";
 import { DifficultyBadge, MemoryBadge, ModeBadge, TagBadge } from "@/components/common/badges";
 import { formatDate, formatDueRelative, formatPercent, formatStability } from "@/lib/format";
-import { addTagsToProblems, archiveProblems, resetCards, suspendProblems, unsuspendProblems } from "@/lib/problems/actions";
+import {
+  addTagsToProblems,
+  archiveProblems,
+  resetCards,
+  suspendProblems,
+  unsuspendProblems,
+} from "@/lib/problems/actions";
 import type { ProblemListItem, TagBrief } from "@/lib/problems/queries";
 import { cn } from "@/lib/utils";
 
-export function ProblemsTable({ items, tags, tz }: { items: ProblemListItem[]; tags: TagBrief[]; tz: string }) {
+export function ProblemsTable({
+  items,
+  tags,
+  tz,
+}: {
+  items: ProblemListItem[];
+  tags: TagBrief[];
+  tz: string;
+}) {
   const router = useRouter();
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [confirmReset, setConfirmReset] = React.useState(false);
@@ -81,23 +102,48 @@ export function ProblemsTable({ items, tags, tz }: { items: ProblemListItem[]; t
               ))}
             </PopoverContent>
           </Popover>
-          <Button variant="outline" size="sm" disabled={pending} onClick={() => run("Suspended", () => suspendProblems(ids))}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={pending}
+            onClick={() => run("Suspended", () => suspendProblems(ids))}
+          >
             <PauseCircle size={14} />
             Suspend
           </Button>
-          <Button variant="outline" size="sm" disabled={pending} onClick={() => run("Unsuspended", () => unsuspendProblems(ids))}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={pending}
+            onClick={() => run("Unsuspended", () => unsuspendProblems(ids))}
+          >
             <Play size={14} />
             Unsuspend
           </Button>
-          <Button variant="outline" size="sm" disabled={pending} onClick={() => run("Archived", () => archiveProblems(ids))}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={pending}
+            onClick={() => run("Archived", () => archiveProblems(ids))}
+          >
             <Archive size={14} />
             Archive
           </Button>
-          <Button variant="outline" size="sm" disabled={pending} onClick={() => setConfirmReset(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={pending}
+            onClick={() => setConfirmReset(true)}
+          >
             <ArrowCounterClockwise size={14} />
             Reset card
           </Button>
-          <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setSelected(new Set())}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto"
+            onClick={() => setSelected(new Set())}
+          >
             <X size={14} />
             Clear
           </Button>
@@ -107,9 +153,12 @@ export function ProblemsTable({ items, tags, tz }: { items: ProblemListItem[]; t
       <AlertDialog open={confirmReset} onOpenChange={setConfirmReset}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reset {ids.length === 1 ? "this card" : `${ids.length} cards`}?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Reset {ids.length === 1 ? "this card" : `${ids.length} cards`}?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Memory state goes back to new and the card becomes due now. The review history stays; counters are untouched.
+              Memory state goes back to new and the card becomes due now. The review history stays;
+              counters are untouched.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -132,7 +181,11 @@ export function ProblemsTable({ items, tags, tz }: { items: ProblemListItem[]; t
           <thead>
             <tr className="h-9 border-b border-border text-left text-2xs font-medium text-fg-muted">
               <th className="w-9 pl-3">
-                <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="Select all" />
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={toggleAll}
+                  aria-label="Select all"
+                />
               </th>
               <th className="w-14 pr-2 text-right">#</th>
               <th className="min-w-56 pr-3">Title</th>
@@ -150,13 +203,26 @@ export function ProblemsTable({ items, tags, tz }: { items: ProblemListItem[]; t
           </thead>
           <tbody>
             {items.map((p) => (
-              <tr key={p.id} className={cn("h-10 border-b border-border last:border-b-0 hover:bg-hover/60", selected.has(p.id) && "bg-primary/6")}>
+              <tr
+                key={p.id}
+                className={cn(
+                  "h-10 border-b border-border last:border-b-0 hover:bg-hover/60",
+                  selected.has(p.id) && "bg-primary/6",
+                )}
+              >
                 <td className="pl-3">
-                  <Checkbox checked={selected.has(p.id)} onCheckedChange={() => toggle(p.id)} aria-label={`Select ${p.title}`} />
+                  <Checkbox
+                    checked={selected.has(p.id)}
+                    onCheckedChange={() => toggle(p.id)}
+                    aria-label={`Select ${p.title}`}
+                  />
                 </td>
                 <td className="pr-2 text-right text-fg-subtle">{p.leetcodeNumber ?? ""}</td>
                 <td className="max-w-0 pr-3">
-                  <Link href={`/problems/${p.id}`} className="block truncate font-medium text-foreground hover:underline underline-offset-2">
+                  <Link
+                    href={`/problems/${p.id}`}
+                    className="block truncate font-medium text-foreground underline-offset-2 hover:underline"
+                  >
                     {p.title}
                   </Link>
                 </td>
@@ -168,21 +234,38 @@ export function ProblemsTable({ items, tags, tz }: { items: ProblemListItem[]; t
                     {p.tags.slice(0, 3).map((t) => (
                       <TagBadge key={t.id} name={t.name} color={t.color} />
                     ))}
-                    {p.tags.length > 3 ? <span className="text-2xs text-fg-subtle">+{p.tags.length - 3}</span> : null}
+                    {p.tags.length > 3 ? (
+                      <span className="text-2xs text-fg-subtle">+{p.tags.length - 3}</span>
+                    ) : null}
                   </div>
                 </td>
                 <td>
-                  {p.status === "active" ? <MemoryBadge state={p.memoryState} /> : <span className="text-2xs text-fg-subtle capitalize">{p.status}</span>}
+                  {p.status === "active" ? (
+                    <MemoryBadge state={p.memoryState} />
+                  ) : (
+                    <span className="text-2xs text-fg-subtle capitalize">{p.status}</span>
+                  )}
                 </td>
-                <td className={cn("text-fg-muted", p.dueInDays !== null && p.dueInDays < 0 && "text-hard")}>
+                <td
+                  className={cn(
+                    "text-fg-muted",
+                    p.dueInDays !== null && p.dueInDays < 0 && "text-hard",
+                  )}
+                >
                   {p.card && p.status === "active" ? formatDueRelative(p.dueInDays ?? 0) : ""}
                 </td>
-                <td className="text-right text-fg-muted">{p.card ? formatStability(p.card.stability) : ""}</td>
-                <td className="text-right text-fg-muted">{p.retrievability !== null ? formatPercent(p.retrievability) : ""}</td>
+                <td className="text-right text-fg-muted">
+                  {p.card ? formatStability(p.card.stability) : ""}
+                </td>
+                <td className="text-right text-fg-muted">
+                  {p.retrievability !== null ? formatPercent(p.retrievability) : ""}
+                </td>
                 <td className="text-right text-fg-muted">
                   {p.reviseCount} / {p.resolveCount}
                 </td>
-                <td className="pr-3 text-right text-fg-muted">{p.card?.lastReview ? formatDate(p.card.lastReview, tz) : ""}</td>
+                <td className="pr-3 text-right text-fg-muted">
+                  {p.card?.lastReview ? formatDate(p.card.lastReview, tz) : ""}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -192,12 +275,25 @@ export function ProblemsTable({ items, tags, tz }: { items: ProblemListItem[]; t
       {/* Phone: cards */}
       <ul className="flex flex-col gap-2 md:hidden">
         {items.map((p) => (
-          <li key={p.id} className={cn("rounded-md border border-border bg-surface", selected.has(p.id) && "border-primary/50")}>
+          <li
+            key={p.id}
+            className={cn(
+              "rounded-md border border-border bg-surface",
+              selected.has(p.id) && "border-primary/50",
+            )}
+          >
             <div className="flex items-start gap-3 p-3">
-              <Checkbox checked={selected.has(p.id)} onCheckedChange={() => toggle(p.id)} aria-label={`Select ${p.title}`} className="mt-1" />
+              <Checkbox
+                checked={selected.has(p.id)}
+                onCheckedChange={() => toggle(p.id)}
+                aria-label={`Select ${p.title}`}
+                className="mt-1"
+              />
               <Link href={`/problems/${p.id}`} className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
-                  {p.leetcodeNumber ? <span className="text-2xs text-fg-subtle">{p.leetcodeNumber}</span> : null}
+                  {p.leetcodeNumber ? (
+                    <span className="text-2xs text-fg-subtle">{p.leetcodeNumber}</span>
+                  ) : null}
                   <span className="truncate text-sm font-medium">{p.title}</span>
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
@@ -209,8 +305,14 @@ export function ProblemsTable({ items, tags, tz }: { items: ProblemListItem[]; t
                   ))}
                 </div>
                 <div className="mt-1.5 flex gap-3 text-2xs text-fg-muted">
-                  {p.card && p.status === "active" ? <span className={cn(p.dueInDays !== null && p.dueInDays < 0 && "text-hard")}>{formatDueRelative(p.dueInDays ?? 0)}</span> : null}
-                  {p.retrievability !== null ? <span>R {formatPercent(p.retrievability)}</span> : null}
+                  {p.card && p.status === "active" ? (
+                    <span className={cn(p.dueInDays !== null && p.dueInDays < 0 && "text-hard")}>
+                      {formatDueRelative(p.dueInDays ?? 0)}
+                    </span>
+                  ) : null}
+                  {p.retrievability !== null ? (
+                    <span>R {formatPercent(p.retrievability)}</span>
+                  ) : null}
                   <span>
                     {p.reviseCount} rev · {p.resolveCount} res
                   </span>

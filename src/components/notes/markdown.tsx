@@ -25,7 +25,11 @@ const components: Components = {
   a({ href, children }) {
     const external = href && /^https?:/i.test(href);
     return (
-      <a href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>
+      <a
+        href={href}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noreferrer" : undefined}
+      >
         {children}
       </a>
     );
@@ -39,7 +43,17 @@ export function Markdown({ source, className }: { source: string; className?: st
     <div className={cn("prose-notes", className)}>
       <MarkdownAsync
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[[rehypeShiki, { themes: SHIKI_THEMES, defaultColor: false, fallbackLanguage: "text", langs: [...SHIKI_LANGS] }]]}
+        rehypePlugins={[
+          [
+            rehypeShiki,
+            {
+              themes: SHIKI_THEMES,
+              defaultColor: false,
+              fallbackLanguage: "text",
+              langs: [...SHIKI_LANGS],
+            },
+          ],
+        ]}
         components={components}
       >
         {source}

@@ -53,7 +53,8 @@ export async function fetchLeetCodeQuestion(
       "content-type": "application/json",
       accept: "application/json",
       referer: leetCodeUrl(slug),
-      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+      "user-agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
     },
     body: JSON.stringify({ query: QUERY, variables: { slug }, operationName: "recurQuestion" }),
     signal: AbortSignal.timeout(timeoutMs),
@@ -139,7 +140,9 @@ export function mapTopicTags(
     const lower = raw.trim().toLowerCase();
     if (!lower) continue;
     const direct = byLower.get(lower);
-    const viaSynonym = TOPIC_SYNONYMS[lower] ? byLower.get(TOPIC_SYNONYMS[lower].toLowerCase()) : undefined;
+    const viaSynonym = TOPIC_SYNONYMS[lower]
+      ? byLower.get(TOPIC_SYNONYMS[lower].toLowerCase())
+      : undefined;
     const hit = direct ?? viaSynonym;
     if (hit) matched.set(hit.id, hit);
     else if (!unmatched.some((u) => u.toLowerCase() === lower)) unmatched.push(raw.trim());

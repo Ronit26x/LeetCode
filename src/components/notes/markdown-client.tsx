@@ -30,7 +30,11 @@ const components: Components = {
   a({ href, children }) {
     const external = href && /^https?:/i.test(href);
     return (
-      <a href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>
+      <a
+        href={href}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noreferrer" : undefined}
+      >
         {children}
       </a>
     );

@@ -8,7 +8,8 @@ import { ThemeSwitch } from "@/components/theme/theme-switch";
 export const metadata: Metadata = { title: "Sign in" };
 
 const ERROR_TEXT: Record<string, string> = {
-  AccessDenied: "That GitHub account is not allowed here. Sign in with the account this instance is bound to.",
+  AccessDenied:
+    "That GitHub account is not allowed here. Sign in with the account this instance is bound to.",
   Configuration: "Sign-in is not configured. Check the GitHub OAuth environment variables.",
   OAuthCallbackError: "GitHub did not complete the sign-in. Try again.",
 };
@@ -30,7 +31,7 @@ export default async function LoginPage({
       <main className="flex flex-1 items-center justify-center px-4 pb-24">
         <div className="w-full max-w-sm">
           <Wordmark />
-          <h1 className="display mt-6 text-2xl leading-8">Sign in</h1>
+          <h1 className="mt-6 display text-2xl leading-8">Sign in</h1>
           <p className="mt-2 text-sm text-fg-muted">
             One account owns this instance. Sign in with the GitHub login it is bound to.
           </p>

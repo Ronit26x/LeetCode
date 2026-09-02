@@ -1,7 +1,14 @@
 import "server-only";
 import { and, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { cards, problems, queueDays, reviewLogs, settings as settingsTable, type Settings } from "@/db/schema";
+import {
+  cards,
+  problems,
+  queueDays,
+  reviewLogs,
+  settings as settingsTable,
+  type Settings,
+} from "@/db/schema";
 import { getSettings } from "@/db/bootstrap";
 import { dayEnd, dayStart, reviewDayKey } from "@/lib/day";
 import { enrichProblems, type ProblemListItem } from "@/lib/problems/queries";
@@ -16,7 +23,13 @@ export interface QueueStats {
   revises: number;
   resolves: number;
   estimatedMinutes: number;
-  doneToday: { total: number; revises: number; resolves: number; seconds: number; againIds: string[] };
+  doneToday: {
+    total: number;
+    revises: number;
+    resolves: number;
+    seconds: number;
+    againIds: string[];
+  };
   tomorrow: number;
   streak: number;
   retention: number;
@@ -70,7 +83,10 @@ export async function applyRetentionRamp(settings: Settings, now: Date): Promise
       }
     }
   }
-  await db.update(settingsTable).set({ lastRampAppliedDay: reviewDay }).where(eq(settingsTable.id, 1));
+  await db
+    .update(settingsTable)
+    .set({ lastRampAppliedDay: reviewDay })
+    .where(eq(settingsTable.id, 1));
   return changed;
 }
 
@@ -79,8 +95,16 @@ async function streakDays(settings: Settings, now: Date): Promise<number> {
   const rows = await db
     .select({ at: reviewLogs.reviewedAt })
     .from(reviewLogs)
-    .where(and(isNull(reviewLogs.undoneAt), sql`${reviewLogs.rating} > 0`, gte(reviewLogs.reviewedAt, new Date(now.getTime() - 400 * 86_400_000))));
-  const days = new Set(rows.map((r) => reviewDayKey(r.at, settings.timezone, settings.dayStartHour)));
+    .where(
+      and(
+        isNull(reviewLogs.undoneAt),
+        sql`${reviewLogs.rating} > 0`,
+        gte(reviewLogs.reviewedAt, new Date(now.getTime() - 400 * 86_400_000)),
+      ),
+    );
+  const days = new Set(
+    rows.map((r) => reviewDayKey(r.at, settings.timezone, settings.dayStartHour)),
+  );
   const today = reviewDayKey(now, settings.timezone, settings.dayStartHour);
   let cursor = dayStart(now, settings.timezone, settings.dayStartHour);
   let streak = 0;
@@ -90,7 +114,9 @@ async function streakDays(settings: Settings, now: Date): Promise<number> {
     const key = reviewDayKey(cursor, settings.timezone, settings.dayStartHour);
     if (!days.has(key)) break;
     streak++;
-    cursor = new Date(dayStart(cursor, settings.timezone, settings.dayStartHour).getTime() - 3_600_000);
+    cursor = new Date(
+      dayStart(cursor, settings.timezone, settings.dayStartHour).getTime() - 3_600_000,
+    );
   }
   return streak;
 }
@@ -116,7 +142,9 @@ export async function getTodayQueue(now = new Date()): Promise<TodayQueue> {
   const byId = new Map(dueItems.map((i) => [i.id, i]));
 
   // Materialize today's order once; later requests read it back and append what became due.
-  const existing = await db.query.queueDays.findFirst({ where: eq(queueDays.reviewDay, reviewDay) });
+  const existing = await db.query.queueDays.findFirst({
+    where: eq(queueDays.reviewDay, reviewDay),
+  });
   const known = new Set(existing?.problemIds ?? []);
   const fresh = dueItems
     .filter((i) => !known.has(i.id))
@@ -128,19 +156,37 @@ export async function getTodayQueue(now = new Date()): Promise<TodayQueue> {
   const appended = interleave(fresh, reviewDay).map((f) => f.id);
   let orderedIds = [...(existing?.problemIds ?? []), ...appended];
   if (!existing) {
-    await db.insert(queueDays).values({ reviewDay, problemIds: orderedIds, generatedAt: now }).onConflictDoNothing();
+    await db
+      .insert(queueDays)
+      .values({ reviewDay, problemIds: orderedIds, generatedAt: now })
+      .onConflictDoNothing();
     const row = await db.query.queueDays.findFirst({ where: eq(queueDays.reviewDay, reviewDay) });
     orderedIds = row?.problemIds ?? orderedIds;
   } else if (appended.length) {
-    await db.update(queueDays).set({ problemIds: orderedIds }).where(eq(queueDays.reviewDay, reviewDay));
+    await db
+      .update(queueDays)
+      .set({ problemIds: orderedIds })
+      .where(eq(queueDays.reviewDay, reviewDay));
   }
   const items = orderedIds.map((id) => byId.get(id)).filter((i): i is ProblemListItem => !!i);
 
   // Done today
   const doneRows = await db
-    .select({ mode: reviewLogs.mode, rating: reviewLogs.rating, seconds: reviewLogs.durationSeconds, problemId: reviewLogs.problemId })
+    .select({
+      mode: reviewLogs.mode,
+      rating: reviewLogs.rating,
+      seconds: reviewLogs.durationSeconds,
+      problemId: reviewLogs.problemId,
+    })
     .from(reviewLogs)
-    .where(and(isNull(reviewLogs.undoneAt), sql`${reviewLogs.rating} > 0`, gte(reviewLogs.reviewedAt, dayStartAt), lt(reviewLogs.reviewedAt, dayEndAt)));
+    .where(
+      and(
+        isNull(reviewLogs.undoneAt),
+        sql`${reviewLogs.rating} > 0`,
+        gte(reviewLogs.reviewedAt, dayStartAt),
+        lt(reviewLogs.reviewedAt, dayEndAt),
+      ),
+    );
   const doneToday = {
     total: doneRows.length,
     revises: doneRows.filter((r) => r.mode === "revise").length,
@@ -152,19 +198,26 @@ export async function getTodayQueue(now = new Date()): Promise<TodayQueue> {
   const tomorrowEnd = new Date(dayEndAt.getTime() + 86_400_000);
   const tomorrow = withCard.filter((p) => {
     const t = p.card!.due.getTime();
-    return t >= dayEndAt.getTime() && t < tomorrowEnd.getTime() + (dayEnd(tomorrowEnd, tz, hour).getTime() - tomorrowEnd.getTime());
+    return (
+      t >= dayEndAt.getTime() &&
+      t < tomorrowEnd.getTime() + (dayEnd(tomorrowEnd, tz, hour).getTime() - tomorrowEnd.getTime())
+    );
   }).length;
 
   const revises = items.filter((i) => i.suggestion?.mode !== "resolve").length;
   const resolves = items.length - revises;
   const targets = settings.resolveTimeTargetsMin;
   const estimatedMinutes = items.reduce(
-    (a, i) => a + (i.suggestion?.mode === "resolve" ? targets[i.difficulty] : settings.reviseTimeEstimateMin),
+    (a, i) =>
+      a +
+      (i.suggestion?.mode === "resolve" ? targets[i.difficulty] : settings.reviseTimeEstimateMin),
     0,
   );
 
   const cramActive =
-    sched.daysUntilInterview !== null && sched.daysUntilInterview >= 0 && sched.daysUntilInterview <= settings.cramWindowDays;
+    sched.daysUntilInterview !== null &&
+    sched.daysUntilInterview >= 0 &&
+    sched.daysUntilInterview <= settings.cramWindowDays;
   let cram: ProblemListItem[] = [];
   if (cramActive) {
     const notDue = withCard.filter((p) => p.card!.due.getTime() >= dayEndAt.getTime());
@@ -203,7 +256,10 @@ export async function getTodayQueue(now = new Date()): Promise<TodayQueue> {
 export async function getSessionIds(problemId?: string): Promise<string[]> {
   if (problemId) {
     const db = await getDb();
-    const rows = await db.select({ id: problems.id }).from(problems).where(and(eq(problems.id, problemId), inArray(problems.status, ["active", "suspended"])));
+    const rows = await db
+      .select({ id: problems.id })
+      .from(problems)
+      .where(and(eq(problems.id, problemId), inArray(problems.status, ["active", "suspended"])));
     return rows.map((r) => r.id);
   }
   const q = await getTodayQueue();

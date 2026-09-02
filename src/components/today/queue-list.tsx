@@ -21,7 +21,9 @@ export function QueueList({
 }) {
   const [showAll, setShowAll] = React.useState(false);
   // The cap hides the tail but never an overdue card.
-  const visible = items.filter((it, i) => showAll || softCap === null || i < softCap || (it.dueInDays ?? 0) < 0);
+  const visible = items.filter(
+    (it, i) => showAll || softCap === null || i < softCap || (it.dueInDays ?? 0) < 0,
+  );
   const hidden = items.length - visible.length;
   return (
     <div>
@@ -37,7 +39,11 @@ export function QueueList({
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-2">
-                    {p.leetcodeNumber ? <span className="w-9 shrink-0 text-2xs text-fg-subtle">{p.leetcodeNumber}</span> : null}
+                    {p.leetcodeNumber ? (
+                      <span className="w-9 shrink-0 text-2xs text-fg-subtle">
+                        {p.leetcodeNumber}
+                      </span>
+                    ) : null}
                     <span className="truncate text-sm font-medium">{p.title}</span>
                     <DifficultyBadge difficulty={p.difficulty} plain />
                   </div>
@@ -64,7 +70,11 @@ export function QueueList({
         })}
       </ol>
       {hidden > 0 ? (
-        <button type="button" onClick={() => setShowAll(true)} className="mt-2 text-md text-fg-muted hover:text-foreground">
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className="mt-2 text-md text-fg-muted hover:text-foreground"
+        >
           Show {hidden} more
         </button>
       ) : null}

@@ -53,16 +53,32 @@ const editorTheme = EditorView.theme({
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground, ::selection": {
     backgroundColor: "color-mix(in oklch, var(--primary) 22%, transparent) !important",
   },
-  ".cm-matchingBracket": { backgroundColor: "color-mix(in oklch, var(--primary) 16%, transparent)", outline: "none" },
+  ".cm-matchingBracket": {
+    backgroundColor: "color-mix(in oklch, var(--primary) 16%, transparent)",
+    outline: "none",
+  },
 });
 
 const highlight = HighlightStyle.define([
-  { tag: [t.keyword, t.controlKeyword, t.operatorKeyword, t.modifier], color: "var(--code-keyword)" },
-  { tag: [t.typeName, t.className, t.namespace, t.standard(t.typeName)], color: "var(--code-type)" },
+  {
+    tag: [t.keyword, t.controlKeyword, t.operatorKeyword, t.modifier],
+    color: "var(--code-keyword)",
+  },
+  {
+    tag: [t.typeName, t.className, t.namespace, t.standard(t.typeName)],
+    color: "var(--code-type)",
+  },
   { tag: [t.string, t.special(t.string), t.character], color: "var(--code-string)" },
   { tag: [t.number, t.bool, t.null, t.atom], color: "var(--code-number)" },
-  { tag: [t.comment, t.lineComment, t.blockComment, t.docComment], color: "var(--code-comment)", fontStyle: "italic" },
-  { tag: [t.function(t.variableName), t.function(t.propertyName), t.macroName], color: "var(--code-function)" },
+  {
+    tag: [t.comment, t.lineComment, t.blockComment, t.docComment],
+    color: "var(--code-comment)",
+    fontStyle: "italic",
+  },
+  {
+    tag: [t.function(t.variableName), t.function(t.propertyName), t.macroName],
+    color: "var(--code-function)",
+  },
   { tag: [t.processingInstruction, t.meta, t.annotation], color: "var(--code-meta)" },
   { tag: [t.operator, t.punctuation, t.bracket], color: "var(--fg-muted)" },
 ]);
@@ -92,7 +108,12 @@ export function CodeEditor({
       keymap.of([indentWithTab]),
       editorTheme,
       syntaxHighlighting(highlight),
-      EditorView.contentAttributes.of({ "aria-label": ariaLabel ?? "Code", spellcheck: "false", autocorrect: "off", autocapitalize: "off" }),
+      EditorView.contentAttributes.of({
+        "aria-label": ariaLabel ?? "Code",
+        spellcheck: "false",
+        autocorrect: "off",
+        autocapitalize: "off",
+      }),
     ],
     [language, ariaLabel],
   );

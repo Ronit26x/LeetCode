@@ -30,7 +30,11 @@ export async function GET(req: Request) {
     try {
       const { Resend } = await import("resend");
       const resend = new Resend(apiKey);
-      const appUrl = process.env.APP_URL ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000");
+      const appUrl =
+        process.env.APP_URL ??
+        (process.env.VERCEL_PROJECT_PRODUCTION_URL
+          ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+          : "http://localhost:3000");
       const mail = buildNudgeEmail(q, appUrl);
       const res = await resend.emails.send({
         from: process.env.NUDGE_EMAIL_FROM ?? "Recur <onboarding@resend.dev>",

@@ -3,7 +3,14 @@
 import * as React from "react";
 import { Check, Plus, X } from "@phosphor-icons/react/dist/ssr";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { TagBadge } from "@/components/common/badges";
 import type { TagBrief } from "@/lib/problems/queries";
 import { cn } from "@/lib/utils";
@@ -49,11 +56,21 @@ export function TagPicker({
     setQuery("");
   }
   function removeNew(name: string) {
-    onChange(value, newTags.filter((n) => n !== name));
+    onChange(
+      value,
+      newTags.filter((n) => n !== name),
+    );
   }
 
-  const pendingSuggestions = (suggested ?? []).filter((s) => !newTags.some((n) => n.toLowerCase() === s.toLowerCase()));
-  const KIND_LABEL: Record<string, string> = { topic: "Topics", pattern: "Patterns", company: "Companies", custom: "Custom" };
+  const pendingSuggestions = (suggested ?? []).filter(
+    (s) => !newTags.some((n) => n.toLowerCase() === s.toLowerCase()),
+  );
+  const KIND_LABEL: Record<string, string> = {
+    topic: "Topics",
+    pattern: "Patterns",
+    company: "Companies",
+    custom: "Custom",
+  };
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
@@ -101,7 +118,10 @@ export function TagPicker({
                   <CommandGroup key={kind} heading={KIND_LABEL[kind] ?? kind}>
                     {list.map((t) => (
                       <CommandItem key={t.id} value={t.name} onSelect={() => toggle(t.id)}>
-                        <span className={cn("size-2 rounded-full", `bg-tag-${t.color}`)} aria-hidden />
+                        <span
+                          className={cn("size-2 rounded-full", `bg-tag-${t.color}`)}
+                          aria-hidden
+                        />
                         <span className="flex-1 truncate">{t.name}</span>
                         {value.includes(t.id) ? <Check size={14} className="text-primary" /> : null}
                       </CommandItem>

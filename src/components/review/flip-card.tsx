@@ -34,7 +34,10 @@ export function FlipCard({
 }) {
   const frontRef = React.useRef<HTMLDivElement>(null);
   const backRef = React.useRef<HTMLDivElement>(null);
-  const [heights, setHeights] = React.useState<{ front: number; back: number }>({ front: 0, back: 0 });
+  const [heights, setHeights] = React.useState<{ front: number; back: number }>({
+    front: 0,
+    back: 0,
+  });
   const reduced = useReducedMotion();
 
   React.useEffect(() => {
@@ -88,7 +91,10 @@ export function FlipCard({
             ref={frontRef}
             inert={flipped}
             aria-hidden={flipped}
-            style={{ visibility: flipped ? "hidden" : "visible", transition: reduced ? "opacity 150ms, visibility 0s 150ms" : "visibility 0s 175ms" }}
+            style={{
+              visibility: flipped ? "hidden" : "visible",
+              transition: reduced ? "opacity 150ms, visibility 0s 150ms" : "visibility 0s 175ms",
+            }}
             className={cn(
               "absolute inset-x-0 top-0 rounded-xl border border-border bg-surface p-5 [backface-visibility:hidden] sm:p-8",
               reduced && flipped && "opacity-0",
@@ -100,7 +106,10 @@ export function FlipCard({
             ref={backRef}
             inert={!flipped}
             aria-hidden={!flipped}
-            style={{ visibility: flipped ? "visible" : "hidden", transition: reduced ? "opacity 150ms, visibility 0s 150ms" : "visibility 0s 175ms" }}
+            style={{
+              visibility: flipped ? "visible" : "hidden",
+              transition: reduced ? "opacity 150ms, visibility 0s 150ms" : "visibility 0s 175ms",
+            }}
             className={cn(
               "absolute inset-x-0 top-0 rounded-xl border border-border bg-surface p-5 [backface-visibility:hidden] sm:p-8",
               !reduced && "[transform:rotateY(180deg)]",

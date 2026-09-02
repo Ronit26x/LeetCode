@@ -1,6 +1,15 @@
 import { eq, sql } from "drizzle-orm";
 import type { Db } from "@/db";
-import { cards, problemRelations, problems, problemTags, reviewLogs, settings as settingsTable, snippets, tags } from "@/db/schema";
+import {
+  cards,
+  problemRelations,
+  problems,
+  problemTags,
+  reviewLogs,
+  settings as settingsTable,
+  snippets,
+  tags,
+} from "@/db/schema";
 import { settingsPatchSchema, fsrsWeightsSchema, type ExportFile } from "@/lib/validation";
 
 const iso = (d: Date | null | undefined) => (d ? d.toISOString() : null);
@@ -42,7 +51,13 @@ export async function buildExport(db: Db): Promise<ExportFile> {
           dailySoftCap: settingsRow.dailySoftCap,
         }
       : undefined,
-    tags: tagRows.map((t) => ({ name: t.name, color: t.color, kind: t.kind, alwaysResolve: t.alwaysResolve, sortOrder: t.sortOrder })),
+    tags: tagRows.map((t) => ({
+      name: t.name,
+      color: t.color,
+      kind: t.kind,
+      alwaysResolve: t.alwaysResolve,
+      sortOrder: t.sortOrder,
+    })),
     problems: rows.map((p) => ({
       slug: p.slug,
       leetcodeNumber: p.leetcodeNumber,
@@ -64,7 +79,12 @@ export async function buildExport(db: Db): Promise<ExportFile> {
       createdAt: p.createdAt.toISOString(),
       tags: p.problemTags.map((pt) => pt.tag.name),
       related: p.relations.map((r) => r.related.slug),
-      snippets: p.snippets.map((s) => ({ label: s.label, language: s.language, code: s.code, sortOrder: s.sortOrder })),
+      snippets: p.snippets.map((s) => ({
+        label: s.label,
+        language: s.language,
+        code: s.code,
+        sortOrder: s.sortOrder,
+      })),
       card: p.card
         ? {
             due: p.card.due.toISOString(),
@@ -123,7 +143,11 @@ class DryRunRollback extends Error {
  * Idempotent import: problems by slug, tags by name (case-insensitive), logs by client_review_id.
  * Re-importing the same file is a no-op. `dryRun` runs the whole thing and rolls back.
  */
-export async function importData(db: Db, file: ExportFile, opts: { dryRun: boolean }): Promise<ImportPreview> {
+export async function importData(
+  db: Db,
+  file: ExportFile,
+  opts: { dryRun: boolean },
+): Promise<ImportPreview> {
   const preview: ImportPreview = {
     tags: { create: 0, existing: 0 },
     problems: { create: 0, update: 0 },
@@ -146,13 +170,23 @@ export async function importData(db: Db, file: ExportFile, opts: { dryRun: boole
           preview.tags.existing++;
           continue;
         }
-        const [row] = await tx.insert(tags).values({ name: t.name, color: t.color, kind: t.kind, alwaysResolve: t.alwaysResolve, sortOrder: t.sortOrder }).returning({ id: tags.id });
+        const [row] = await tx
+          .insert(tags)
+          .values({
+            name: t.name,
+            color: t.color,
+            kind: t.kind,
+            alwaysResolve: t.alwaysResolve,
+            sortOrder: t.sortOrder,
+          })
+          .returning({ id: tags.id });
         tagIdByLower.set(key, row.id);
         preview.tags.create++;
       }
       // Problems
       const idBySlug = new Map<string, string>();
-      for (const p of await tx.select({ id: problems.id, slug: problems.slug }).from(problems)) idBySlug.set(p.slug, p.id);
+      for (const p of await tx.select({ id: problems.id, slug: problems.slug }).from(problems))
+        idBySlug.set(p.slug, p.id);
       for (const p of file.problems) {
         const values = {
           leetcodeNumber: p.leetcodeNumber,
@@ -180,7 +214,11 @@ export async function importData(db: Db, file: ExportFile, opts: { dryRun: boole
         } else {
           const [row] = await tx
             .insert(problems)
-            .values({ slug: p.slug, ...values, createdAt: p.createdAt ? new Date(p.createdAt) : now })
+            .values({
+              slug: p.slug,
+              ...values,
+              createdAt: p.createdAt ? new Date(p.createdAt) : now,
+            })
             .returning({ id: problems.id });
           id = row.id;
           idBySlug.set(p.slug, id);
@@ -191,7 +229,10 @@ export async function importData(db: Db, file: ExportFile, opts: { dryRun: boole
         for (const name of p.tags) {
           let tagId = tagIdByLower.get(name.toLowerCase());
           if (!tagId) {
-            const [row] = await tx.insert(tags).values({ name, kind: "custom" }).returning({ id: tags.id });
+            const [row] = await tx
+              .insert(tags)
+              .values({ name, kind: "custom" })
+              .returning({ id: tags.id });
             tagId = row.id;
             tagIdByLower.set(name.toLowerCase(), tagId);
             preview.tags.create++;
@@ -201,7 +242,15 @@ export async function importData(db: Db, file: ExportFile, opts: { dryRun: boole
         // Snippets: replace, byte for byte.
         await tx.delete(snippets).where(eq(snippets.problemId, id));
         for (const [i, s] of p.snippets.entries()) {
-          await tx.insert(snippets).values({ problemId: id, label: s.label, language: s.language, code: s.code, sortOrder: s.sortOrder ?? i });
+          await tx
+            .insert(snippets)
+            .values({
+              problemId: id,
+              label: s.label,
+              language: s.language,
+              code: s.code,
+              sortOrder: s.sortOrder ?? i,
+            });
           preview.snippets++;
         }
         // Card
@@ -219,7 +268,10 @@ export async function importData(db: Db, file: ExportFile, opts: { dryRun: boole
             lastReview: p.card.lastReview ? new Date(p.card.lastReview) : null,
             updatedAt: now,
           };
-          await tx.insert(cards).values({ problemId: id, ...c }).onConflictDoUpdate({ target: cards.problemId, set: c });
+          await tx
+            .insert(cards)
+            .values({ problemId: id, ...c })
+            .onConflictDoUpdate({ target: cards.problemId, set: c });
           preview.cards++;
         }
         // Logs by client_review_id
@@ -259,11 +311,16 @@ export async function importData(db: Db, file: ExportFile, opts: { dryRun: boole
         for (const slug of p.related) {
           const rid = idBySlug.get(slug);
           if (!rid) {
-            preview.warnings.push(`${p.slug}: related problem ${slug} is not in the file or the library`);
+            preview.warnings.push(
+              `${p.slug}: related problem ${slug} is not in the file or the library`,
+            );
             continue;
           }
           if (rid === id) continue;
-          await tx.insert(problemRelations).values({ problemId: id, relatedProblemId: rid }).onConflictDoNothing();
+          await tx
+            .insert(problemRelations)
+            .values({ problemId: id, relatedProblemId: rid })
+            .onConflictDoNothing();
           preview.relations++;
         }
       }
@@ -272,11 +329,18 @@ export async function importData(db: Db, file: ExportFile, opts: { dryRun: boole
         const { fsrsParams, ...rest } = file.settings as Record<string, unknown>;
         const patch = settingsPatchSchema.safeParse(rest);
         if (patch.success) {
-          await tx.update(settingsTable).set({ ...patch.data, lastRampAppliedDay: null, updatedAt: now }).where(eq(settingsTable.id, 1));
+          await tx
+            .update(settingsTable)
+            .set({ ...patch.data, lastRampAppliedDay: null, updatedAt: now })
+            .where(eq(settingsTable.id, 1));
           preview.settings = true;
-        } else preview.warnings.push("Settings in the file were ignored: " + patch.error.issues[0]?.message);
+        } else
+          preview.warnings.push(
+            "Settings in the file were ignored: " + patch.error.issues[0]?.message,
+          );
         const w = fsrsWeightsSchema.safeParse(fsrsParams);
-        if (w.success) await tx.update(settingsTable).set({ fsrsParams: w.data }).where(eq(settingsTable.id, 1));
+        if (w.success)
+          await tx.update(settingsTable).set({ fsrsParams: w.data }).where(eq(settingsTable.id, 1));
       }
       // Counters: keep the file's values (a restore), but never let them drift below the log count.
       await tx.execute(sql`select 1`);

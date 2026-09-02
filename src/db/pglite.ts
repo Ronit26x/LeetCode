@@ -14,6 +14,8 @@ export async function createPgliteDb(target: string) {
       ? new PGlite(path.resolve(/* turbopackIgnore: true */ process.cwd(), target))
       : new PGlite();
   const db = drizzle(client, { schema });
-  await migrate(db, { migrationsFolder: path.join(/* turbopackIgnore: true */ process.cwd(), "drizzle") });
+  await migrate(db, {
+    migrationsFolder: path.join(/* turbopackIgnore: true */ process.cwd(), "drizzle"),
+  });
   return db;
 }

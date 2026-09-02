@@ -14,6 +14,9 @@ export default defineConfig({
   strict: true,
   verbose: true,
   ...(pglite
-    ? { driver: "pglite" as const, dbCredentials: { url: url.slice("pglite://".length) || "memory" } }
+    ? {
+        driver: "pglite" as const,
+        dbCredentials: { url: url.slice("pglite://".length) || "memory" },
+      }
     : { dbCredentials: { url } }),
 });

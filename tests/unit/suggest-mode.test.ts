@@ -17,18 +17,20 @@ const log = (mode: "revise" | "resolve", rating: number, stability = 0, day = 0)
 
 describe("suggestMode", () => {
   it("suggests Resolve on the first review after a struggling first solve", () => {
-    expect(suggestMode({ stability: 2, state: 2 }, [log("resolve", 2)], problem(), settings)).toMatchObject({
+    expect(
+      suggestMode({ stability: 2, state: 2 }, [log("resolve", 2)], problem(), settings),
+    ).toMatchObject({
       mode: "resolve",
     });
-    expect(suggestMode({ stability: 1, state: 2 }, [log("resolve", 1)], problem(), settings).mode).toBe(
-      "resolve",
-    );
+    expect(
+      suggestMode({ stability: 1, state: 2 }, [log("resolve", 1)], problem(), settings).mode,
+    ).toBe("resolve");
   });
 
   it("suggests Revise after a clean first solve", () => {
-    expect(suggestMode({ stability: 3, state: 2 }, [log("resolve", 3)], problem(), settings).mode).toBe(
-      "revise",
-    );
+    expect(
+      suggestMode({ stability: 3, state: 2 }, [log("resolve", 3)], problem(), settings).mode,
+    ).toBe("revise");
   });
 
   it("suggests Resolve when the last grade was Again", () => {
@@ -69,15 +71,20 @@ describe("suggestMode", () => {
       mode: "resolve",
       reason: "3 revises since the last resolve",
     });
-    expect(suggestMode({ stability: 6.9, state: 2 }, logs.slice(0, 3), problem(), settings).mode).toBe(
-      "revise",
-    );
+    expect(
+      suggestMode({ stability: 6.9, state: 2 }, logs.slice(0, 3), problem(), settings).mode,
+    ).toBe("revise");
   });
 
   it("suggests Resolve for a tag marked always resolve", () => {
     const logs = [log("resolve", 3)];
     expect(
-      suggestMode({ stability: 3, state: 2 }, logs, problem([{ name: "Graphs", alwaysResolve: true }]), settings),
+      suggestMode(
+        { stability: 3, state: 2 },
+        logs,
+        problem([{ name: "Graphs", alwaysResolve: true }]),
+        settings,
+      ),
     ).toMatchObject({ mode: "resolve", reason: "Graphs is always resolved" });
   });
 

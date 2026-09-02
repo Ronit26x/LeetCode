@@ -16,14 +16,20 @@ function revalidateAll() {
   revalidatePath("/today");
 }
 
-export async function createTag(raw: z.input<typeof tagInputSchema>): Promise<ActionResult<{ id: string }>> {
+export async function createTag(
+  raw: z.input<typeof tagInputSchema>,
+): Promise<ActionResult<{ id: string }>> {
   await requireSession();
   const db = await getDb();
   const parsed = tagInputSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
-  const dupe = await db.query.tags.findFirst({ where: sql`lower(${tags.name}) = ${parsed.data.name.toLowerCase()}` });
+  const dupe = await db.query.tags.findFirst({
+    where: sql`lower(${tags.name}) = ${parsed.data.name.toLowerCase()}`,
+  });
   if (dupe) return { ok: false, error: `A tag named ${dupe.name} already exists.` };
-  const [{ max }] = await db.select({ max: sql<number>`coalesce(max(${tags.sortOrder}), -1)::int` }).from(tags);
+  const [{ max }] = await db
+    .select({ max: sql<number>`coalesce(max(${tags.sortOrder}), -1)::int` })
+    .from(tags);
   const [row] = await db
     .insert(tags)
     .values({ ...parsed.data, sortOrder: max + 1 })
@@ -39,10 +45,15 @@ export async function updateTag(raw: z.input<typeof updateTagSchema>): Promise<A
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const { id, ...patch } = parsed.data;
   if (patch.name) {
-    const dupe = await db.query.tags.findFirst({ where: sql`lower(${tags.name}) = ${patch.name.toLowerCase()} and ${tags.id} <> ${id}` });
+    const dupe = await db.query.tags.findFirst({
+      where: sql`lower(${tags.name}) = ${patch.name.toLowerCase()} and ${tags.id} <> ${id}`,
+    });
     if (dupe) return { ok: false, error: `A tag named ${dupe.name} already exists.` };
   }
-  await db.update(tags).set({ ...patch, updatedAt: new Date() }).where(eq(tags.id, id));
+  await db
+    .update(tags)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(eq(tags.id, id));
   revalidateAll();
   return { ok: true, data: null };
 }
@@ -66,7 +77,10 @@ export async function mergeTags(rawSource: string, rawTarget: string): Promise<A
   const [sourceId, targetId] = ids.data;
   if (sourceId === targetId) return { ok: false, error: "Pick two different tags." };
   await db.transaction(async (tx) => {
-    const rows = await tx.select({ problemId: problemTags.problemId }).from(problemTags).where(eq(problemTags.tagId, sourceId));
+    const rows = await tx
+      .select({ problemId: problemTags.problemId })
+      .from(problemTags)
+      .where(eq(problemTags.tagId, sourceId));
     if (rows.length) {
       await tx
         .insert(problemTags)

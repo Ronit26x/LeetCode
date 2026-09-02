@@ -4,7 +4,10 @@ const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 const page = await ctx.newPage();
 const msgs: string[] = [];
-page.on("console", (m) => { if (["error", "warning"].includes(m.type())) msgs.push(`[${m.type()}] ${m.text().slice(0, 4000)}`); });
+page.on("console", (m) => {
+  if (["error", "warning"].includes(m.type()))
+    msgs.push(`[${m.type()}] ${m.text().slice(0, 4000)}`);
+});
 page.on("pageerror", (e) => msgs.push(`[pageerror] ${e.message.slice(0, 4000)}`));
 await page.goto(`${BASE}/login`, { waitUntil: "networkidle" });
 await page.getByRole("button", { name: /test sign in/i }).click();

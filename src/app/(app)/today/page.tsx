@@ -24,10 +24,19 @@ export default async function TodayPage() {
   const boundary = formatInTimeZone(stats.dayEndAt, tz, "h a");
   const db = await getDb();
   const againTitles = stats.doneToday.againIds.length
-    ? await db.select({ id: problems.id, title: problems.title }).from(problems).where(inArray(problems.id, stats.doneToday.againIds))
+    ? await db
+        .select({ id: problems.id, title: problems.title })
+        .from(problems)
+        .where(inArray(problems.id, stats.doneToday.againIds))
     : [];
-  const rampActive = stats.daysUntilInterview !== null && stats.daysUntilInterview >= 0 && stats.daysUntilInterview < settings.retentionRampDays && settings.retentionRampEnabled;
-  const interviewLabel = stats.interviewDate ? formatDate(stats.interviewDate + "T12:00:00", tz, "MMM d") : null;
+  const rampActive =
+    stats.daysUntilInterview !== null &&
+    stats.daysUntilInterview >= 0 &&
+    stats.daysUntilInterview < settings.retentionRampDays &&
+    settings.retentionRampEnabled;
+  const interviewLabel = stats.interviewDate
+    ? formatDate(stats.interviewDate + "T12:00:00", tz, "MMM d")
+    : null;
 
   const summary = [
     pluralize(stats.due, "card"),
@@ -44,10 +53,14 @@ export default async function TodayPage() {
         description={
           <>
             {dateLabel}. The next review day starts at {boundary}.
-            {stats.daysUntilInterview !== null && stats.daysUntilInterview >= 0 && interviewLabel ? (
+            {stats.daysUntilInterview !== null &&
+            stats.daysUntilInterview >= 0 &&
+            interviewLabel ? (
               <>
                 {" "}
-                {stats.daysUntilInterview === 0 ? "Interview day." : `${pluralize(stats.daysUntilInterview, "day")} to ${interviewLabel}.`}
+                {stats.daysUntilInterview === 0
+                  ? "Interview day."
+                  : `${pluralize(stats.daysUntilInterview, "day")} to ${interviewLabel}.`}
               </>
             ) : null}
           </>
@@ -101,25 +114,41 @@ export default async function TodayPage() {
         <section className="mt-10">
           <h2 className="display text-xl leading-7">Cram</h2>
           <p className="mt-1 mb-3 text-md text-fg-muted">
-            Not due yet, sorted by the lowest predicted recall on {interviewLabel} if not reviewed again. Separate from the schedule above; reviewing one is a normal early review.
+            Not due yet, sorted by the lowest predicted recall on {interviewLabel} if not reviewed
+            again. Separate from the schedule above; reviewing one is a normal early review.
           </p>
           {cram.length === 0 ? (
-            <p className="text-sm text-fg-subtle">Every scheduled card is predicted above the line.</p>
+            <p className="text-sm text-fg-subtle">
+              Every scheduled card is predicted above the line.
+            </p>
           ) : (
             <ol className="divide-y divide-border rounded-md border border-border">
               {cram.map((p) => (
                 <li key={p.id} className="flex items-center gap-3 px-3 py-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
-                      {p.leetcodeNumber ? <span className="w-9 shrink-0 text-2xs text-fg-subtle">{p.leetcodeNumber}</span> : null}
-                      <Link href={`/problems/${p.id}`} className="truncate text-sm font-medium hover:underline underline-offset-2">
+                      {p.leetcodeNumber ? (
+                        <span className="w-9 shrink-0 text-2xs text-fg-subtle">
+                          {p.leetcodeNumber}
+                        </span>
+                      ) : null}
+                      <Link
+                        href={`/problems/${p.id}`}
+                        className="truncate text-sm font-medium underline-offset-2 hover:underline"
+                      >
                         {p.title}
                       </Link>
                       <DifficultyBadge difficulty={p.difficulty} plain />
                     </div>
                   </div>
-                  <span className="text-2xs text-fg-muted">{formatPercent(p.predictedInterviewRecall)} on {interviewLabel}</span>
-                  <Button size="sm" variant="outline" render={<Link href={`/review?problem=${p.id}`} />}>
+                  <span className="text-2xs text-fg-muted">
+                    {formatPercent(p.predictedInterviewRecall)} on {interviewLabel}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    render={<Link href={`/review?problem=${p.id}`} />}
+                  >
                     Review now
                   </Button>
                 </li>

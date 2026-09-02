@@ -20,7 +20,11 @@ export function HeaderSkeleton({ actions }: { actions?: boolean }) {
 /** A list of rows, matching the queue and library rhythm. */
 export function RowsSkeleton({ rows = 6 }: { rows?: number }) {
   return (
-    <div className="divide-y divide-border rounded-md border border-border" aria-busy="true" aria-label="Loading">
+    <div
+      className="divide-y divide-border rounded-md border border-border"
+      aria-busy="true"
+      aria-label="Loading"
+    >
       {Array.from({ length: rows }, (_, i) => (
         <div key={i} className="flex items-center gap-3 px-3 py-3">
           <Bar className="h-4 w-8" />

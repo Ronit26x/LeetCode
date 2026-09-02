@@ -22,7 +22,8 @@ function parse(json: string) {
     return { ok: false as const, error: "That file is not valid JSON." };
   }
   const parsed = exportSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false as const, error: `Not a Recur export: ${firstIssue(parsed.error)}` };
+  if (!parsed.success)
+    return { ok: false as const, error: `Not a Recur export: ${firstIssue(parsed.error)}` };
   return { ok: true as const, data: parsed.data };
 }
 
@@ -46,7 +47,8 @@ export async function importApply(json: string): Promise<ActionResult<ImportPrev
   try {
     const db = await getDb();
     const preview = await importData(db, p.data, { dryRun: false });
-    for (const path of ["/today", "/backlog", "/problems", "/stats", "/settings"]) revalidatePath(path);
+    for (const path of ["/today", "/backlog", "/problems", "/stats", "/settings"])
+      revalidatePath(path);
     return { ok: true, data: preview };
   } catch (e) {
     console.error("[import] apply failed", e);

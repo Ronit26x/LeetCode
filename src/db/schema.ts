@@ -17,7 +17,12 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const difficultyEnum = pgEnum("difficulty", ["easy", "medium", "hard"]);
-export const problemStatusEnum = pgEnum("problem_status", ["backlog", "active", "suspended", "archived"]);
+export const problemStatusEnum = pgEnum("problem_status", [
+  "backlog",
+  "active",
+  "suspended",
+  "archived",
+]);
 export const reviewModeEnum = pgEnum("review_mode", ["revise", "resolve"]);
 export const tagKindEnum = pgEnum("tag_kind", ["topic", "pattern", "company", "custom"]);
 export const tagColorEnum = pgEnum("tag_color", [
@@ -119,7 +124,10 @@ export const problemTags = pgTable(
       .notNull()
       .references(() => tags.id, { onDelete: "cascade" }),
   },
-  (t) => [primaryKey({ columns: [t.problemId, t.tagId] }), index("problem_tags_tag_idx").on(t.tagId)],
+  (t) => [
+    primaryKey({ columns: [t.problemId, t.tagId] }),
+    index("problem_tags_tag_idx").on(t.tagId),
+  ],
 );
 
 export const problemRelations = pgTable(
@@ -238,7 +246,9 @@ export const settings = pgTable(
 export const queueDays = pgTable("queue_days", {
   reviewDay: date("review_day", { mode: "string" }).primaryKey(),
   problemIds: uuid("problem_ids").array().notNull(),
-  generatedAt: timestamp("generated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  generatedAt: timestamp("generated_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .defaultNow(),
 });
 
 export const problemsRelations = relations(problems, ({ one, many }) => ({

@@ -1,9 +1,21 @@
 "use client";
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { KEYS, RUBRIC } from "@/lib/rubric";
 
-export function HelpSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+export function HelpSheet({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -15,7 +27,9 @@ export function HelpSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
           {KEYS.map(([k, v]) => (
             <div key={k} className="contents">
               <dt>
-                <kbd className="rounded-[3px] border border-border bg-sunken px-1.5 font-sans text-2xs font-medium">{k}</kbd>
+                <kbd className="rounded-[3px] border border-border bg-sunken px-1.5 font-sans text-2xs font-medium">
+                  {k}
+                </kbd>
               </dt>
               <dd className="text-fg-muted">{v}</dd>
             </div>
@@ -28,7 +42,10 @@ export function HelpSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
               <ul className="flex flex-col gap-1 text-2xs text-fg-muted">
                 {([1, 2, 3, 4] as const).map((r) => (
                   <li key={r}>
-                    <span className="font-medium text-foreground">{["", "Again", "Hard", "Good", "Easy"][r]}</span>: {RUBRIC[mode][r]}
+                    <span className="font-medium text-foreground">
+                      {["", "Again", "Hard", "Good", "Easy"][r]}
+                    </span>
+                    : {RUBRIC[mode][r]}
                   </li>
                 ))}
               </ul>

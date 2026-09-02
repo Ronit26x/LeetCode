@@ -3,7 +3,12 @@
 export type RatingValue = 1 | 2 | 3 | 4;
 export type RubricMode = "first" | "revise" | "resolve";
 
-export const RATING_NAMES: Record<RatingValue, string> = { 1: "Again", 2: "Hard", 3: "Good", 4: "Easy" };
+export const RATING_NAMES: Record<RatingValue, string> = {
+  1: "Again",
+  2: "Hard",
+  3: "Good",
+  4: "Easy",
+};
 
 export const RUBRIC: Record<RubricMode, Record<RatingValue, string>> = {
   first: {

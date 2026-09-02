@@ -17,7 +17,10 @@ export function TopBar() {
       <Link href="/today" className="rounded-sm lg:hidden">
         <Wordmark />
       </Link>
-      <div className="hidden min-w-0 items-center gap-1.5 text-md text-fg-muted lg:flex" aria-label="Breadcrumb">
+      <div
+        className="hidden min-w-0 items-center gap-1.5 text-md text-fg-muted lg:flex"
+        aria-label="Breadcrumb"
+      >
         {crumbs.map((c, i) => (
           <span key={c + i} className="flex items-center gap-1.5">
             {i > 0 ? <span className="text-fg-subtle">/</span> : null}

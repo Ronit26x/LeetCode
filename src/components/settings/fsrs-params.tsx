@@ -14,7 +14,9 @@ export function FsrsParams({ weights }: { weights: number[] }) {
   const [text, setText] = React.useState(JSON.stringify(weights));
   const [error, setError] = React.useState<string | null>(null);
   const [pending, start] = React.useTransition();
-  const isDefault = weights.length === DEFAULT_FSRS_W.length && weights.every((w, i) => Math.abs(w - DEFAULT_FSRS_W[i]) < 1e-9);
+  const isDefault =
+    weights.length === DEFAULT_FSRS_W.length &&
+    weights.every((w, i) => Math.abs(w - DEFAULT_FSRS_W[i]) < 1e-9);
 
   function save() {
     setError(null);
@@ -39,7 +41,9 @@ export function FsrsParams({ weights }: { weights: number[] }) {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-md text-fg-muted">
-        FSRS-6 with the library defaults{isDefault ? "" : " (customized)"}. Decay w20 = {weights[20]?.toFixed(4)}. Every grade, preview and prediction goes through ts-fsrs with these weights.
+        FSRS-6 with the library defaults{isDefault ? "" : " (customized)"}. Decay w20 ={" "}
+        {weights[20]?.toFixed(4)}. Every grade, preview and prediction goes through ts-fsrs with
+        these weights.
       </p>
       <ol className="grid grid-cols-3 gap-x-4 gap-y-1 font-mono text-2xs text-fg-muted sm:grid-cols-7">
         {weights.map((w, i) => (
@@ -50,7 +54,12 @@ export function FsrsParams({ weights }: { weights: number[] }) {
         ))}
       </ol>
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" onClick={() => setAdvanced((a) => !a)} aria-expanded={advanced}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setAdvanced((a) => !a)}
+          aria-expanded={advanced}
+        >
           {advanced ? "Hide editor" : "Advanced"}
         </Button>
         {!isDefault ? (
@@ -82,14 +91,19 @@ export function FsrsParams({ weights }: { weights: number[] }) {
             rows={4}
             spellCheck={false}
             aria-label="FSRS weights as a JSON array"
-            className={cn("w-full rounded-md border border-border bg-sunken px-3 py-2 font-mono text-md leading-5 focus-visible:outline-2 focus-visible:outline-offset-1")}
+            className={cn(
+              "w-full rounded-md border border-border bg-sunken px-3 py-2 font-mono text-md leading-5 focus-visible:outline-2 focus-visible:outline-offset-1",
+            )}
           />
           {error ? (
             <p role="alert" className="text-2xs text-again">
               {error}
             </p>
           ) : (
-            <p className="text-2xs text-fg-subtle">21 numbers, validated by ts-fsrs before saving. Paste the output of an optimizer run here.</p>
+            <p className="text-2xs text-fg-subtle">
+              21 numbers, validated by ts-fsrs before saving. Paste the output of an optimizer run
+              here.
+            </p>
           )}
           <div>
             <Button size="sm" onClick={save} disabled={pending}>

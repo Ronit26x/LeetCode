@@ -116,8 +116,7 @@
   --primary: oklch(0.52 0.16 262);
   --primary-foreground: oklch(0.99 0.002 90);
   --destructive: oklch(0.55 0.19 25);
-  --shadow-float:
-    0 1px 2px oklch(0.2 0.01 260 / 0.06), 0 8px 24px -4px oklch(0.2 0.01 260 / 0.12);
+  --shadow-float: 0 1px 2px oklch(0.2 0.01 260 / 0.06), 0 8px 24px -4px oklch(0.2 0.01 260 / 0.12);
 
   --again: oklch(0.55 0.19 25);
   --hard: oklch(0.56 0.13 70);
@@ -248,8 +247,10 @@
     scrollbar-color: var(--border-strong) transparent;
   }
   body {
-    @apply bg-background text-foreground font-sans text-sm;
-    font-feature-settings: "tnum" 1, "cv11" 1;
+    @apply bg-background font-sans text-sm text-foreground;
+    font-feature-settings:
+      "tnum" 1,
+      "cv11" 1;
     font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -260,7 +261,9 @@
   kbd,
   samp {
     font-family: var(--font-mono);
-    font-feature-settings: "liga" 0, "calt" 0;
+    font-feature-settings:
+      "liga" 0,
+      "calt" 0;
     font-variant-ligatures: none;
   }
   ::selection {

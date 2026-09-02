@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowUUpLeft, Question, X } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { SegmentedControl } from "@/components/common/segmented-control";
 import { FlipCard } from "@/components/review/flip-card";
 import { ResolveTimer } from "@/components/review/timer";
@@ -70,7 +76,9 @@ export function Session(props: SessionProps) {
   const [flipAt, setFlipAt] = React.useState<string | null>(null);
   const [previews, setPreviews] = React.useState<GradePreview | null>(null);
   const [grading, setGrading] = React.useState(false);
-  const [notePrompt, setNotePrompt] = React.useState<{ logId: string; rating: RatingValue } | null>(null);
+  const [notePrompt, setNotePrompt] = React.useState<{ logId: string; rating: RatingValue } | null>(
+    null,
+  );
   const [note, setNote] = React.useState("");
   const [appendPitfalls, setAppendPitfalls] = React.useState(true);
   const [editOpen, setEditOpen] = React.useState(false);
@@ -78,7 +86,10 @@ export function Session(props: SessionProps) {
   const [announcement, setAnnouncement] = React.useState("");
   const [lastGrade, setLastGrade] = React.useState<LastGrade | null>(null);
   const gradeRef = React.useRef<HTMLDivElement>(null);
-  const timerControlsRef = React.useRef<{ elapsed: () => number; pause: () => void }>({ elapsed: () => 0, pause: () => {} });
+  const timerControlsRef = React.useRef<{ elapsed: () => number; pause: () => void }>({
+    elapsed: () => 0,
+    pause: () => {},
+  });
 
   React.useEffect(() => {
     const t = setTimeout(() => setLastGrade(readLastGrade()), 0);
@@ -122,11 +133,19 @@ export function Session(props: SessionProps) {
         toast.error(res.error);
         return;
       }
-      const last: LastGrade = { logId: res.data.logId, index: props.index, problemId: props.problemId, single: props.single, at: Date.now() };
+      const last: LastGrade = {
+        logId: res.data.logId,
+        index: props.index,
+        problemId: props.problemId,
+        single: props.single,
+        at: Date.now(),
+      };
       try {
         sessionStorage.setItem(LAST_GRADE_KEY, JSON.stringify(last));
       } catch {}
-      setAnnouncement(`${RATING_NAMES[rating]}. Next in ${formatInterval(res.data.scheduledDays)}.`);
+      setAnnouncement(
+        `${RATING_NAMES[rating]}. Next in ${formatInterval(res.data.scheduledDays)}.`,
+      );
       if (rating <= 2) {
         setNotePrompt({ logId: res.data.logId, rating });
         return;
@@ -158,7 +177,11 @@ export function Session(props: SessionProps) {
   async function saveNote(skip: boolean) {
     if (!notePrompt) return;
     if (!skip && note.trim()) {
-      const res = await annotateGrade({ logId: notePrompt.logId, note: note.trim(), appendToPitfalls: appendPitfalls });
+      const res = await annotateGrade({
+        logId: notePrompt.logId,
+        note: note.trim(),
+        appendToPitfalls: appendPitfalls,
+      });
       if (!res.ok) toast.error(res.error);
     }
     setNotePrompt(null);
@@ -232,10 +255,17 @@ export function Session(props: SessionProps) {
   }, [flipped, editOpen, helpOpen, flip, undo, props.url, router]);
 
   const previewLabels = previews
-    ? { 1: formatInterval(previews[1]), 2: formatInterval(previews[2]), 3: formatInterval(previews[3]), 4: formatInterval(previews[4]) }
+    ? {
+        1: formatInterval(previews[1]),
+        2: formatInterval(previews[2]),
+        3: formatInterval(previews[3]),
+        4: formatInterval(previews[4]),
+      }
     : undefined;
   const target = props.timeTargets[props.difficulty];
-  const presets = [...new Set([props.timeTargets.easy, props.timeTargets.medium, props.timeTargets.hard])].sort((a, b) => a - b);
+  const presets = [
+    ...new Set([props.timeTargets.easy, props.timeTargets.medium, props.timeTargets.hard]),
+  ].sort((a, b) => a - b);
   const progress = props.total ? (props.done / props.total) * 100 : 0;
 
   return (
@@ -250,7 +280,11 @@ export function Session(props: SessionProps) {
           value={mode}
           onValueChange={setMode}
           options={[
-            { value: "revise", label: "Revise", hint: "Recall the insight and approach. About 3 minutes." },
+            {
+              value: "revise",
+              label: "Revise",
+              hint: "Recall the insight and approach. About 3 minutes.",
+            },
             { value: "resolve", label: "Resolve", hint: "Re-implement it cold, on the clock." },
           ]}
           className="ml-1"
@@ -260,25 +294,47 @@ export function Session(props: SessionProps) {
             <Button variant="ghost" size="sm" onClick={undo} aria-label="Undo the last grade">
               <ArrowUUpLeft size={14} />
               Undo
-              <kbd aria-hidden="true" className="hidden rounded-[3px] border border-border px-1 font-sans text-2xs text-fg-subtle sm:inline">Z</kbd>
+              <kbd
+                aria-hidden="true"
+                className="hidden rounded-[3px] border border-border px-1 font-sans text-2xs text-fg-subtle sm:inline"
+              >
+                Z
+              </kbd>
             </Button>
           ) : null}
-          <Button variant="ghost" size="icon-sm" onClick={() => setHelpOpen(true)} aria-label="Keyboard shortcuts and rubric">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setHelpOpen(true)}
+            aria-label="Keyboard shortcuts and rubric"
+          >
             <Question size={16} />
           </Button>
-          <Button variant="ghost" size="icon-sm" onClick={() => router.push("/today")} aria-label="Leave the session">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => router.push("/today")}
+            aria-label="Leave the session"
+          >
             <X size={16} />
           </Button>
         </div>
       </div>
       <div className="relative mb-4 h-px w-full bg-border" aria-hidden>
-        <div className="absolute inset-y-0 left-0 bg-primary transition-[width] duration-300" style={{ width: `${progress}%` }} />
+        <div
+          className="absolute inset-y-0 left-0 bg-primary transition-[width] duration-300"
+          style={{ width: `${progress}%` }}
+        />
       </div>
 
       {props.suggestion ? (
         <p className="mb-3 text-2xs text-fg-muted">
-          Suggested: <span className="font-medium text-foreground">{MODE_LABEL[props.suggestion.mode]}</span>, {props.suggestion.reason.toLowerCase()}
-          {mode !== props.suggestion.mode ? <span className="text-fg-subtle"> · you switched to {MODE_LABEL[mode]}</span> : null}
+          Suggested:{" "}
+          <span className="font-medium text-foreground">{MODE_LABEL[props.suggestion.mode]}</span>,{" "}
+          {props.suggestion.reason.toLowerCase()}
+          {mode !== props.suggestion.mode ? (
+            <span className="text-fg-subtle"> · you switched to {MODE_LABEL[mode]}</span>
+          ) : null}
         </p>
       ) : null}
 
@@ -301,7 +357,7 @@ export function Session(props: SessionProps) {
         </div>
       ) : null}
 
-      <div key={props.problemId} className="animate-in fade-in slide-in-from-right-4 duration-200">
+      <div key={props.problemId} className="animate-in duration-200 fade-in slide-in-from-right-4">
         <FlipCard flipped={flipped} front={props.front} back={props.back} onFlip={flip} />
       </div>
 
@@ -309,7 +365,12 @@ export function Session(props: SessionProps) {
         {!flipped ? (
           <Button size="lg" className="h-11 w-full" onClick={flip}>
             Flip
-            <kbd aria-hidden="true" className="ml-1 hidden rounded-[3px] border border-primary-foreground/30 px-1 font-sans text-2xs sm:inline">Space</kbd>
+            <kbd
+              aria-hidden="true"
+              className="ml-1 hidden rounded-[3px] border border-primary-foreground/30 px-1 font-sans text-2xs sm:inline"
+            >
+              Space
+            </kbd>
           </Button>
         ) : notePrompt ? (
           <div className="rounded-md border border-border bg-surface p-3">
@@ -336,7 +397,12 @@ export function Session(props: SessionProps) {
             />
             <div className="mt-2 flex items-center justify-between gap-3">
               <label className="flex items-center gap-2 text-2xs text-fg-muted">
-                <input type="checkbox" checked={appendPitfalls} onChange={(e) => setAppendPitfalls(e.target.checked)} className="size-3.5 accent-(--primary)" />
+                <input
+                  type="checkbox"
+                  checked={appendPitfalls}
+                  onChange={(e) => setAppendPitfalls(e.target.checked)}
+                  className="size-3.5 accent-(--primary)"
+                />
                 Add to pitfalls
               </label>
               <div className="flex gap-2">
@@ -372,7 +438,14 @@ export function Session(props: SessionProps) {
             <SheetDescription>Changes show on the next card render.</SheetDescription>
           </SheetHeader>
           <div className="px-4 pb-6">
-            <ProblemForm mode="edit" tags={props.editTags} initial={props.editInitial} problemId={props.problemId} onSaved={() => setEditOpen(false)} onCancel={() => setEditOpen(false)} />
+            <ProblemForm
+              mode="edit"
+              tags={props.editTags}
+              initial={props.editInitial}
+              problemId={props.problemId}
+              onSaved={() => setEditOpen(false)}
+              onCancel={() => setEditOpen(false)}
+            />
           </div>
         </SheetContent>
       </Sheet>

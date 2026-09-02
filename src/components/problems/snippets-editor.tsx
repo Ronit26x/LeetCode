@@ -8,10 +8,18 @@ import { inputClass } from "@/components/common/field";
 import type { SnippetLanguage } from "@/db/schema";
 import { cn } from "@/lib/utils";
 
-const CodeEditor = dynamic(() => import("@/components/code/code-editor").then((m) => m.CodeEditor), {
-  ssr: false,
-  loading: () => <div className="h-[180px] animate-pulse rounded-md border border-border bg-sunken" aria-hidden />,
-});
+const CodeEditor = dynamic(
+  () => import("@/components/code/code-editor").then((m) => m.CodeEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="h-[180px] animate-pulse rounded-md border border-border bg-sunken"
+        aria-hidden
+      />
+    ),
+  },
+);
 
 export interface SnippetDraft {
   id: string;
@@ -87,7 +95,9 @@ export function SnippetsEditor({
       ))}
       <button
         type="button"
-        onClick={() => onChange([...value, newSnippet({ label: value.length ? "Follow-up" : "Optimal" })])}
+        onClick={() =>
+          onChange([...value, newSnippet({ label: value.length ? "Follow-up" : "Optimal" })])
+        }
         className="inline-flex h-8 w-fit items-center gap-1.5 rounded-md border border-dashed border-border-strong px-2.5 text-md font-medium text-fg-muted hover:text-foreground"
       >
         <Plus size={14} />

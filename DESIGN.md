@@ -56,13 +56,13 @@ active navigation. All other color in the interface is information.
 | sunken | oklch(0.962 0.004 90) | oklch(0.232 0.009 65) | oklch(0.115 0.005 260) |
 | fg | oklch(0.21 0.010 260) | oklch(0.86 0.012 75) | oklch(0.93 0.004 260) |
 | fg-muted | oklch(0.50 0.012 260) | oklch(0.68 0.014 70) | oklch(0.70 0.010 260) |
-| fg-subtle | oklch(0.62 0.010 260) | oklch(0.56 0.012 70) | oklch(0.55 0.010 260) |
+| fg-subtle | oklch(0.55 0.010 260) | oklch(0.65 0.012 70) | oklch(0.61 0.010 260) |
 | border | oklch(0.905 0.006 80) | oklch(0.34 0.010 65) | oklch(0.24 0.006 260) |
 | border-strong | oklch(0.84 0.008 80) | oklch(0.42 0.012 65) | oklch(0.32 0.008 260) |
 | accent (cobalt) | oklch(0.52 0.16 262) | oklch(0.74 0.11 262) | oklch(0.76 0.13 262) |
 
 Dim is a real third palette: warm near-black grey, foreground softened to about 10:1 (muted text
-about 5.5:1, still AA), muted accent, tuned for a long session under a lamp. Dark is a true dark
+about 5.5:1, subtle text 4.5:1, all AA), muted accent, tuned for a long session under a lamp. Dark is a true dark
 with a cool cast. Light is paper, not white and not cream.
 
 Semantic hues (each defined per theme so they read on paper and on dark):

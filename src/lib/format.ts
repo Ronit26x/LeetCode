@@ -24,7 +24,11 @@ export function formatStability(s: number): string {
   return formatInterval(s);
 }
 
-export function formatDate(date: Date | string | null | undefined, tz: string, pattern = "MMM d"): string {
+export function formatDate(
+  date: Date | string | null | undefined,
+  tz: string,
+  pattern = "MMM d",
+): string {
   if (!date) return "–";
   const d = typeof date === "string" ? new Date(date) : date;
   return formatInTimeZone(d, tz, pattern);

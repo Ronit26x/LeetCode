@@ -29,7 +29,10 @@ export interface SchedulerSettings {
 }
 
 /** All scheduling goes through here: short-term steps off, fuzz on, retention from settings (or the ramp). */
-export function buildParameters(settings: SchedulerSettings, requestRetention?: number): FSRSParameters {
+export function buildParameters(
+  settings: SchedulerSettings,
+  requestRetention?: number,
+): FSRSParameters {
   return generatorParameters({
     request_retention: requestRetention ?? settings.desiredRetention,
     maximum_interval: settings.maximumInterval,
@@ -165,7 +168,10 @@ export const RETENTION_MAX = 0.97;
  * over the final `retentionRampDays` review days before the interview; the base value
  * outside the window, after the interview, or with the ramp off.
  */
-export function effectiveRetention(settings: RampSettings, daysUntilInterview: number | null): number {
+export function effectiveRetention(
+  settings: RampSettings,
+  daysUntilInterview: number | null,
+): number {
   const base = clampRetention(settings.desiredRetention);
   if (!settings.retentionRampEnabled || daysUntilInterview === null) return base;
   if (daysUntilInterview < 0) return base;

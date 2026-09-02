@@ -5,7 +5,13 @@ const DAY_MS = 86_400_000;
 /** Wall-clock parts of `instant` in `tz`. */
 function wallParts(instant: Date, tz: string) {
   const z = toZonedTime(instant, tz);
-  return { y: z.getFullYear(), m: z.getMonth(), d: z.getDate(), h: z.getHours(), min: z.getMinutes() };
+  return {
+    y: z.getFullYear(),
+    m: z.getMonth(),
+    d: z.getDate(),
+    h: z.getHours(),
+    min: z.getMinutes(),
+  };
 }
 
 /** The instant of `hour`:00 on the wall-clock date (y, m, d) in `tz`. Handles DST via fromZonedTime. */

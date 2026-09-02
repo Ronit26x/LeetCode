@@ -7,7 +7,18 @@ export const SHIKI_THEMES = {
   dark: "github-dark",
 } as const;
 
-export const SHIKI_LANGS = ["cpp", "c", "python", "java", "javascript", "typescript", "bash", "json", "sql", "text"] as const;
+export const SHIKI_LANGS = [
+  "cpp",
+  "c",
+  "python",
+  "java",
+  "javascript",
+  "typescript",
+  "bash",
+  "json",
+  "sql",
+  "text",
+] as const;
 
 const globalForShiki = globalThis as unknown as { __recurShiki?: Promise<Highlighter> };
 
@@ -31,7 +42,10 @@ export function normalizeLang(lang: string | null | undefined): string {
 }
 
 /** Highlighted HTML with per-theme color variables. Falls back to plain text for unknown languages. */
-export async function highlightCode(code: string, lang: string | null | undefined): Promise<string> {
+export async function highlightCode(
+  code: string,
+  lang: string | null | undefined,
+): Promise<string> {
   const h = await getHighlighter();
   const wanted = normalizeLang(lang);
   const loaded = h.getLoadedLanguages();

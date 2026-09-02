@@ -87,14 +87,21 @@ export function RatingButtons({
             <span className="flex items-center gap-1.5 text-sm font-semibold">
               {RATING_NAMES[r]}
               {hotkeys ? (
-                <kbd aria-hidden="true" className="hidden rounded-[3px] border border-border px-1 font-sans text-2xs font-medium text-fg-subtle sm:inline">
+                <kbd
+                  aria-hidden="true"
+                  className="hidden rounded-[3px] border border-border px-1 font-sans text-2xs font-medium text-fg-subtle sm:inline"
+                >
                   {r}
                 </kbd>
               ) : null}
             </span>
-            {previews?.[r] ? <span className="mt-0.5 text-2xs text-fg-muted">{previews[r]}</span> : null}
+            {previews?.[r] ? (
+              <span className="mt-0.5 text-2xs text-fg-muted">{previews[r]}</span>
+            ) : null}
             {showRubric ? (
-              <span className="mt-1 text-center text-2xs leading-4 text-fg-muted">{RUBRIC[mode][r]}</span>
+              <span className="mt-1 text-center text-2xs leading-4 text-fg-muted">
+                {RUBRIC[mode][r]}
+              </span>
             ) : null}
           </button>
         );

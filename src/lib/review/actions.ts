@@ -7,7 +7,15 @@ import { getSettings } from "@/db/bootstrap";
 import { requireSession } from "@/lib/session";
 import { firstIssue, gradeInputSchema, type GradeInput } from "@/lib/validation";
 import type { ActionResult } from "@/lib/problems/actions";
-import { annotateLog, applyGrade, applyUndo, previewFor, ReviewError, type GradePreview, type GradeResult } from "./core";
+import {
+  annotateLog,
+  applyGrade,
+  applyUndo,
+  previewFor,
+  ReviewError,
+  type GradePreview,
+  type GradeResult,
+} from "./core";
 
 function revalidate(problemId: string) {
   revalidatePath("/today");
@@ -21,14 +29,20 @@ function message(e: unknown, fallback: string) {
   return e instanceof ReviewError ? e.message : fallback;
 }
 
-export async function previewGrades(input: { problemId: string; now: string }): Promise<ActionResult<GradePreview>> {
+export async function previewGrades(input: {
+  problemId: string;
+  now: string;
+}): Promise<ActionResult<GradePreview>> {
   await requireSession();
   const parsed = z.object({ problemId: z.uuid(), now: z.iso.datetime() }).safeParse(input);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   try {
     const db = await getDb();
     const settings = await getSettings();
-    return { ok: true, data: await previewFor(db, settings, parsed.data.problemId, new Date(parsed.data.now)) };
+    return {
+      ok: true,
+      data: await previewFor(db, settings, parsed.data.problemId, new Date(parsed.data.now)),
+    };
   } catch (e) {
     console.error("[review] preview failed", e);
     return { ok: false, error: message(e, "Could not compute intervals.") };
@@ -68,7 +82,9 @@ export async function gradeCard(raw: GradeInput): Promise<ActionResult<GradeResu
   }
 }
 
-export async function undoGrade(raw: { logId: string }): Promise<ActionResult<{ problemId: string }>> {
+export async function undoGrade(raw: {
+  logId: string;
+}): Promise<ActionResult<{ problemId: string }>> {
   await requireSession();
   const parsed = z.object({ logId: z.uuid() }).safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
@@ -84,7 +100,11 @@ export async function undoGrade(raw: { logId: string }): Promise<ActionResult<{ 
   }
 }
 
-export async function annotateGrade(raw: { logId: string; note: string; appendToPitfalls: boolean }): Promise<ActionResult> {
+export async function annotateGrade(raw: {
+  logId: string;
+  note: string;
+  appendToPitfalls: boolean;
+}): Promise<ActionResult> {
   await requireSession();
   const parsed = z
     .object({ logId: z.uuid(), note: z.string().trim().max(2000), appendToPitfalls: z.boolean() })

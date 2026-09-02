@@ -33,9 +33,18 @@ export const TAG_DOT_CLASSES: Record<TagColor, string> = {
   stone: "bg-tag-stone",
 };
 
-const base = "inline-flex h-5 max-w-full items-center gap-1 rounded-sm px-1.5 text-2xs font-medium leading-none whitespace-nowrap";
+const base =
+  "inline-flex h-5 max-w-full items-center gap-1 rounded-sm px-1.5 text-2xs font-medium leading-none whitespace-nowrap";
 
-export function TagBadge({ name, color, className }: { name: string; color: TagColor; className?: string }) {
+export function TagBadge({
+  name,
+  color,
+  className,
+}: {
+  name: string;
+  color: TagColor;
+  className?: string;
+}) {
   return (
     <span className={cn(base, TAG_COLOR_CLASSES[color], className)} title={name}>
       <span className="truncate">{name}</span>
@@ -49,11 +58,29 @@ const DIFF_CLASSES: Record<Difficulty, string> = {
   hard: "text-diff-hard bg-diff-hard/12",
 };
 
-export function DifficultyBadge({ difficulty, className, plain }: { difficulty: Difficulty; className?: string; plain?: boolean }) {
+export function DifficultyBadge({
+  difficulty,
+  className,
+  plain,
+}: {
+  difficulty: Difficulty;
+  className?: string;
+  plain?: boolean;
+}) {
   if (plain) {
-    return <span className={cn("text-2xs font-medium", DIFF_CLASSES[difficulty].split(" ")[0], className)}>{DIFFICULTY_LABEL[difficulty]}</span>;
+    return (
+      <span
+        className={cn("text-2xs font-medium", DIFF_CLASSES[difficulty].split(" ")[0], className)}
+      >
+        {DIFFICULTY_LABEL[difficulty]}
+      </span>
+    );
   }
-  return <span className={cn(base, DIFF_CLASSES[difficulty], className)}>{DIFFICULTY_LABEL[difficulty]}</span>;
+  return (
+    <span className={cn(base, DIFF_CLASSES[difficulty], className)}>
+      {DIFFICULTY_LABEL[difficulty]}
+    </span>
+  );
 }
 
 export function ModeBadge({ mode, className }: { mode: ReviewMode; className?: string }) {
@@ -70,15 +97,30 @@ export function ModeBadge({ mode, className }: { mode: ReviewMode; className?: s
   );
 }
 
-const MEMORY_LABEL: Record<MemoryState, string> = { new: "New", review: "Review", lapsed: "Lapsed" };
+const MEMORY_LABEL: Record<MemoryState, string> = {
+  new: "New",
+  review: "Review",
+  lapsed: "Lapsed",
+};
 
-export function MemoryBadge({ state, className }: { state: MemoryState | null; className?: string }) {
-  if (!state) return <span className={cn(base, "bg-sunken text-fg-subtle", className)}>Backlog</span>;
+export function MemoryBadge({
+  state,
+  className,
+}: {
+  state: MemoryState | null;
+  className?: string;
+}) {
+  if (!state)
+    return <span className={cn(base, "bg-sunken text-fg-subtle", className)}>Backlog</span>;
   return (
     <span
       className={cn(
         base,
-        state === "lapsed" ? "bg-again/12 text-again" : state === "new" ? "bg-sunken text-fg-muted" : "bg-sunken text-fg-muted",
+        state === "lapsed"
+          ? "bg-again/12 text-again"
+          : state === "new"
+            ? "bg-sunken text-fg-muted"
+            : "bg-sunken text-fg-muted",
         className,
       )}
     >
@@ -87,10 +129,27 @@ export function MemoryBadge({ state, className }: { state: MemoryState | null; c
   );
 }
 
-export function StatusBadge({ status, className }: { status: "backlog" | "active" | "suspended" | "archived"; className?: string }) {
-  const label = { backlog: "Backlog", active: "Active", suspended: "Suspended", archived: "Archived" }[status];
+export function StatusBadge({
+  status,
+  className,
+}: {
+  status: "backlog" | "active" | "suspended" | "archived";
+  className?: string;
+}) {
+  const label = {
+    backlog: "Backlog",
+    active: "Active",
+    suspended: "Suspended",
+    archived: "Archived",
+  }[status];
   return (
-    <span className={cn(base, status === "suspended" ? "bg-hard/14 text-hard" : "bg-sunken text-fg-muted", className)}>
+    <span
+      className={cn(
+        base,
+        status === "suspended" ? "bg-hard/14 text-hard" : "bg-sunken text-fg-muted",
+        className,
+      )}
+    >
       {label}
     </span>
   );

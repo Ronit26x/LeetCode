@@ -41,7 +41,9 @@ export function interleave<T extends Interleavable>(items: T[], dateKey: string)
 }
 
 /** The topic tag with the lowest sort order, or null. */
-export function primaryTagOf(tags: { kind: string; name: string; sortOrder: number }[]): string | null {
+export function primaryTagOf(
+  tags: { kind: string; name: string; sortOrder: number }[],
+): string | null {
   const topics = tags.filter((t) => t.kind === "topic").sort((a, b) => a.sortOrder - b.sortOrder);
   return topics[0]?.name ?? null;
 }
