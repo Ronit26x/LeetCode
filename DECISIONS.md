@@ -58,3 +58,26 @@ kept.
 rolled-back card comes back due "now". That is fine mid-session and wrong for an early review of a
 card due next month. Each log therefore stores `prev_due`; undo calls `rollback` and then restores
 `due` from the snapshot. Nothing else about the library's rollback is overridden.
+
+## Charts are hand-rolled SVG, one hue, with a table view
+
+The stats page follows the dataviz rules: single-series marks in the accent, bars capped at
+24 px and rounded only at the data end, hairline solid grids, a hover tooltip layer that never
+gates a value (every chart has a table twin), the hero readiness figure in the sans with
+proportional figures, and no dual axes. The difficulty triple (teal, amber, rose) was run through
+the palette validator: it passes in light; in dark the amber pair sits in the 6-8 CVD band, which
+is allowed only with secondary encoding, so difficulty is always labeled by text next to the mark.
+No chart library: the six charts are small, and a dependency would bring its own look.
+
+## Shared constants live in plain modules
+
+Importing a value (not a component) from a `"use client"` file into a server component yields a
+client reference, not the value. Rubric text and the key table therefore live in `src/lib/rubric.ts`
+with no directive, and both sides import from there.
+
+## The cron builds the list for now + 2 hours
+
+Vercel Hobby cron fires somewhere in the hour after 16:00 UTC, which is 9 AM PDT and 8 AM PST.
+Building the queue for the review day that contains now + 2 hours lands on the correct day on
+both sides of the DST change without hardcoding an offset. The same hit runs `select 1` as the
+Supabase keep-alive.

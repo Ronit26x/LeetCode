@@ -1,20 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { RUBRIC } from "@/components/review/rating-buttons";
-
-const KEYS: [string, string][] = [
-  ["Space", "Flip the card"],
-  ["1 – 4", "Again, Hard, Good, Easy"],
-  ["R", "Toggle Revise / Resolve"],
-  ["N", "Open or close the notes"],
-  ["C", "Open or close the code"],
-  ["O", "Open the problem on LeetCode"],
-  ["Z", "Undo the last grade"],
-  ["E", "Edit the problem in a side sheet"],
-  ["Esc", "Leave the session"],
-  ["?", "This sheet"],
-];
+import { KEYS, RUBRIC } from "@/lib/rubric";
 
 export function HelpSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   return (
