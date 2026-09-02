@@ -2,6 +2,7 @@ import "server-only";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
+  cards,
   problems,
   reviewLogs,
   tags,
@@ -494,6 +495,9 @@ export interface ProblemBrief {
   leetcodeNumber: number | null;
   difficulty: Difficulty;
   status: ProblemStatus;
+  source?: ProblemSource;
+  /** True once the problem has entered the schedule; "review now" is possible. */
+  hasCard?: boolean;
 }
 
 export async function searchProblemsBrief(q: string, limit = 12): Promise<ProblemBrief[]> {
@@ -506,8 +510,11 @@ export async function searchProblemsBrief(q: string, limit = 12): Promise<Proble
       leetcodeNumber: problems.leetcodeNumber,
       difficulty: problems.difficulty,
       status: problems.status,
+      source: problems.source,
+      hasCard: sql<boolean>`${cards.problemId} is not null`,
     })
     .from(problems)
+    .leftJoin(cards, eq(cards.problemId, problems.id))
     .where(
       needle
         ? sql`(lower(${problems.title}) like ${"%" + needle + "%"} or ${problems.leetcodeNumber}::text like ${needle + "%"} or ${problems.slug} like ${"%" + needle + "%"})`

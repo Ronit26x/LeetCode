@@ -6,6 +6,7 @@ import { ProblemForm, type ProblemFormValues } from "@/components/problems/probl
 import type { TagBrief } from "@/lib/problems/queries";
 import type { ProblemStatus } from "@/db/schema";
 import { isTypingTarget } from "@/lib/hotkeys";
+import { useRouter } from "next/navigation";
 
 /** Holds the edit state; the read view is server-rendered and passed in as children. */
 export function ProblemDetailShell({
@@ -28,6 +29,7 @@ export function ProblemDetailShell({
   aside: React.ReactNode;
 }) {
   const [editing, setEditing] = React.useState(false);
+  const router = useRouter();
 
   React.useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -37,11 +39,15 @@ export function ProblemDetailShell({
         e.preventDefault();
         setEditing((v) => !v);
       }
+      if ((e.key === "r" || e.key === "R") && hasCard && !editing) {
+        e.preventDefault();
+        router.push(`/review?problem=${id}`);
+      }
       if (e.key === "Escape" && editing) setEditing(false);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [editing]);
+  }, [editing, hasCard, id, router]);
 
   return (
     <>

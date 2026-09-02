@@ -153,6 +153,14 @@ code snippets in CodeMirror (stored byte for byte, tabs included), tags, similar
 extended notes. "Solved it today" asks how the solve went and schedules the first review;
 "Add to backlog" queues it unscheduled. Cmd+Enter saves.
 
+## Keyboard
+
+Anywhere outside a text field: `⌘K` or `/` opens the palette (type a title or number; `↵` opens
+the problem, `⌘↵` reviews it now if it has a card), `N` adds a problem, `G` then `T` / `B` / `P` /
+`S` / `,` jumps to Today, Backlog, Problems, Stats or Settings, `?` shows the keys. On a problem
+page `R` starts a review and `E` edits. In a session: `Space` flips, `1` to `4` grade, `R` toggles
+Revise / Resolve, `N` notes, `C` code, `O` opens the source, `Z` undoes, `Esc` leaves.
+
 ## Scripts
 
 | Script | What it does |

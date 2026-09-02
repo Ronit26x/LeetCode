@@ -43,3 +43,14 @@ export const KEYS: [string, string][] = [
   ["Esc", "Leave the session"],
   ["?", "Keyboard help"],
 ];
+
+/** Keys that work anywhere outside the session and outside text fields. */
+export const GLOBAL_KEYS: [string, string][] = [
+  ["⌘K or /", "Find a problem, page or action"],
+  ["↵ in ⌘K", "Open the problem; ⌘↵ reviews it now"],
+  ["N", "Add a problem"],
+  ["G then T / B / P / S / ,", "Go to Today, Backlog, Problems, Stats, Settings"],
+  ["R", "On a problem page: review it now"],
+  ["E", "On a problem page: edit"],
+  ["?", "Keyboard help"],
+];

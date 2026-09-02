@@ -2,6 +2,7 @@ import { Sidebar } from "@/components/shell/sidebar";
 import { TopBar } from "@/components/shell/top-bar";
 import { MobileTabBar } from "@/components/shell/mobile-tab-bar";
 import { CommandPalette } from "@/components/shell/command-palette";
+import { GlobalHotkeys } from "@/components/shell/global-hotkeys";
 import type { NavKey } from "@/lib/nav";
 
 export function AppShell({
@@ -24,6 +25,7 @@ export function AppShell({
       </div>
       <MobileTabBar />
       <CommandPalette />
+      <GlobalHotkeys />
     </div>
   );
 }

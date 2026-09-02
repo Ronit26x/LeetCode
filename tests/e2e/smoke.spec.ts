@@ -171,3 +171,21 @@ test("backlog: the recent-solves filter and the Still remember it path create a 
   await expect(page.getByText(/solved on GFG \d+ days ago/)).toBeVisible();
   await expect(page.getByText("GFG", { exact: true }).first()).toBeVisible();
 });
+
+test("the palette finds a problem by title and Enter opens it; / opens the palette", async ({
+  page,
+}) => {
+  test.skip(!!process.env.E2E_DATABASE_URL, "Uses the seeded GFG list; local PGlite only");
+  await login(page);
+  await page.goto("/today");
+  await page.locator("body").click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("/");
+  const input = page.getByPlaceholder("Jump to a problem, page, or action");
+  await expect(input).toBeVisible();
+  await input.fill("rotten oranges");
+  const item = page.getByRole("option", { name: /Rotten Oranges/ }).first();
+  await expect(item).toBeVisible();
+  await item.click();
+  await page.waitForURL(/\/problems\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole("heading", { level: 1, name: /Rotten Oranges/ })).toBeVisible();
+});

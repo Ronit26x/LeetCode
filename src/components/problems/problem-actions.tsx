@@ -77,7 +77,15 @@ export function ProblemActions({
   return (
     <div className="flex items-center gap-2">
       {status === "active" && hasCard ? (
-        <Button render={<Link href={`/review?problem=${id}`} />}>Review now</Button>
+        <Button render={<Link href={`/review?problem=${id}`} />}>
+          Review now
+          <kbd
+            aria-hidden="true"
+            className="hidden rounded-[3px] border border-primary-foreground/30 px-1 font-sans text-2xs sm:inline"
+          >
+            R
+          </kbd>
+        </Button>
       ) : null}
       <Button variant="outline" onClick={onEdit} aria-pressed={editing}>
         <PencilSimple size={16} />

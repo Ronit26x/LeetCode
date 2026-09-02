@@ -5,7 +5,7 @@ import { TagManager } from "@/components/settings/tag-manager";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { FsrsParams } from "@/components/settings/fsrs-params";
 import { DataTools } from "@/components/settings/data-tools";
-import { KEYS, RUBRIC } from "@/lib/rubric";
+import { GLOBAL_KEYS, KEYS, RUBRIC } from "@/lib/rubric";
 import { listTagsWithCounts } from "@/lib/problems/queries";
 import { getSettings } from "@/db/bootstrap";
 
@@ -47,7 +47,21 @@ export default async function SettingsPage() {
 
         <section className="rounded-xl border border-border bg-surface p-5">
           <h2 className="text-sm font-medium">Keyboard</h2>
-          <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-md">
+          <p className="mt-1 text-2xs font-medium text-fg-subtle">Anywhere</p>
+          <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-md">
+            {GLOBAL_KEYS.map(([k, v]) => (
+              <div key={k} className="contents">
+                <dt>
+                  <kbd className="rounded-[3px] border border-border bg-sunken px-1.5 font-sans text-2xs font-medium whitespace-nowrap">
+                    {k}
+                  </kbd>
+                </dt>
+                <dd className="text-fg-muted">{v}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-4 text-2xs font-medium text-fg-subtle">In a session</p>
+          <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-md">
             {KEYS.map(([k, v]) => (
               <div key={k} className="contents">
                 <dt>
