@@ -53,20 +53,24 @@ export function FlipCard({
   }, []);
 
   const height = flipped ? heights.back : heights.front;
+  const hintId = React.useId();
 
   return (
     <div className={cn("[perspective:1400px]", className)}>
+      <span id={hintId} className="sr-only">
+        {flipped ? "Press Space to turn the card back over" : "Press Space or click to flip the card"}
+      </span>
       <div
         role="group"
         tabIndex={0}
         aria-label={flipped ? "Card back" : "Card front"}
-        aria-description={flipped ? undefined : "Press Space or click to flip"}
+        aria-describedby={hintId}
         onClick={() => {
           if (!flipped) onFlip?.();
         }}
         onKeyDown={(e) => {
           if (e.target !== e.currentTarget) return;
-          if ((e.key === " " || e.key === "Enter") && !flipped) {
+          if (e.key === " " || e.key === "Enter") {
             e.preventDefault();
             onFlip?.();
           }

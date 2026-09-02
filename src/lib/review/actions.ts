@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getDb } from "@/db";
 import { getSettings } from "@/db/bootstrap";
@@ -17,13 +16,11 @@ import {
   type GradeResult,
 } from "./core";
 
-function revalidate(problemId: string) {
-  revalidatePath("/today");
-  revalidatePath("/review");
-  revalidatePath("/problems");
-  revalidatePath("/stats");
-  revalidatePath(`/problems/${problemId}`);
-}
+/**
+ * No cache revalidation here on purpose: revalidating inside the grade action makes Next
+ * re-render the session route in the action response, which swapped the card out from under
+ * the "what went wrong" prompt. Every page under the shell is force-dynamic, so nothing is stale.
+ */
 
 function message(e: unknown, fallback: string) {
   return e instanceof ReviewError ? e.message : fallback;
@@ -74,7 +71,6 @@ export async function gradeCard(raw: GradeInput): Promise<ActionResult<GradeResu
       },
       at,
     );
-    revalidate(input.problemId);
     return { ok: true, data: result };
   } catch (e) {
     console.error("[review] grade failed", e);
@@ -92,7 +88,6 @@ export async function undoGrade(raw: {
     const db = await getDb();
     const settings = await getSettings();
     const result = await applyUndo(db, settings, parsed.data.logId, new Date());
-    revalidate(result.problemId);
     return { ok: true, data: result };
   } catch (e) {
     console.error("[review] undo failed", e);
@@ -113,7 +108,6 @@ export async function annotateGrade(raw: {
   try {
     const db = await getDb();
     await annotateLog(db, parsed.data.logId, parsed.data.note, parsed.data.appendToPitfalls);
-    revalidatePath("/problems");
     return { ok: true, data: null };
   } catch (e) {
     console.error("[review] annotate failed", e);

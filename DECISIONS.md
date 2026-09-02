@@ -130,3 +130,11 @@ so the first tag of an imported row is its primary topic for interleaving and co
 `core`, `warmup` and `skip` came from the file and are editable in bulk. The seed never overwrites a
 tier, a title, tags, notes or a status on re-run; it only fills empty history fields. Un-archiving a
 skip row simply drops it into the backlog, since it has no card.
+
+## Review actions do not revalidate
+
+`gradeCard` used to call `revalidatePath` for the session route. Next re-rendered the route inside
+the action response, so the "what went wrong" prompt after Again or Hard was replaced by the next
+card before it could be typed into. Every page under the shell is `force-dynamic`, so nothing was
+ever stale; the session advances with `router.replace` when the user is done. Space now toggles the
+card both ways, and the first flip is the instant that grade previews and the review timer use.

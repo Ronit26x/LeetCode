@@ -90,8 +90,22 @@ test("add from a URL, solve, review early, grade, undo, and copy code with tabs"
     .catch(() => {});
   await expect(page.getByText("Look up the complement", { exact: false })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Good/ })).toContainText(/\d+(\.\d+)?(d|mo|y)/);
-  await page.keyboard.press("3");
+  // Space turns the card back over and forward again.
+  await page.locator("body").click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("Space");
+  await expect(page.getByText("Look up the complement", { exact: false })).toBeHidden();
+  await page.keyboard.press("Space");
+  await expect(page.getByText("Look up the complement", { exact: false })).toBeVisible();
+  // Hard: the "what went wrong" prompt waits for input instead of skipping ahead.
+  await page.keyboard.press("2");
+  const wentWrong = page.getByLabel(/What went wrong/);
+  await expect(wentWrong).toBeVisible();
+  await page.waitForTimeout(800);
+  await expect(wentWrong).toBeVisible();
+  await wentWrong.fill("Forgot to insert after the lookup");
+  await page.keyboard.press("Enter");
   await page.waitForURL(/\/problems\/[0-9a-f-]{36}$/);
+  await expect(page.getByText("Forgot to insert after the lookup").first()).toBeVisible();
   await expect(page.getByText("Revised").first()).toBeVisible();
   const revised = () =>
     page

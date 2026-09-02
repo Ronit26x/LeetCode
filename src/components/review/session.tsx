@@ -96,18 +96,24 @@ export function Session(props: SessionProps) {
     return () => clearTimeout(t);
   }, [props.problemId]);
 
+  /** Space and the card toggle both ways; the first flip captures the instant used for previews and the grade. */
   const flip = React.useCallback(() => {
-    if (flipped) return;
-    const now = new Date().toISOString();
+    if (flipped) {
+      setFlipped(false);
+      return;
+    }
     setFlipped(true);
-    setFlipAt(now);
     timerControlsRef.current.pause();
-    previewGrades({ problemId: props.problemId, now }).then((res) => {
-      if (res.ok) setPreviews(res.data);
-      else toast.error(res.error);
-    });
+    if (!flipAt) {
+      const now = new Date().toISOString();
+      setFlipAt(now);
+      previewGrades({ problemId: props.problemId, now }).then((res) => {
+        if (res.ok) setPreviews(res.data);
+        else toast.error(res.error);
+      });
+    }
     requestAnimationFrame(() => gradeRef.current?.focus({ preventScroll: true }));
-  }, [flipped, props.problemId]);
+  }, [flipped, flipAt, props.problemId]);
 
   const advance = React.useCallback(() => {
     router.replace(props.nextHref);
@@ -202,7 +208,7 @@ export function Session(props: SessionProps) {
       if (isTypingTarget(e.target)) return;
       switch (e.key) {
         case " ":
-          if (!flipped && !isInteractiveTarget(e.target)) {
+          if (!isInteractiveTarget(e.target) && !notePrompt) {
             e.preventDefault();
             flip();
           }
@@ -252,7 +258,7 @@ export function Session(props: SessionProps) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flipped, editOpen, helpOpen, flip, undo, props.url, router]);
+  }, [flipped, editOpen, helpOpen, notePrompt, flip, undo, props.url, router]);
 
   const previewLabels = previews
     ? {
