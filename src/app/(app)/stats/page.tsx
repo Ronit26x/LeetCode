@@ -44,15 +44,15 @@ export default async function StatsPage() {
                 {r.days === 0 ? "Today" : `${pluralize(r.days, "day")} to ${r.label}`}
               </p>
             </div>
-            <div className="mt-3 grid gap-4 sm:grid-cols-[auto_1fr] sm:gap-8">
-              <div>
+            <div className="mt-3 grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8">
+              <div className="min-w-0">
                 <p className="text-2xs text-fg-subtle">Mean predicted recall on {r.label} if not reviewed again</p>
                 <p className="mt-1 text-5xl leading-none font-semibold [font-variant-numeric:proportional-nums]">{formatPercent(r.meanRecall)}</p>
                 <p className="mt-2 text-md text-fg-muted">
                   {formatPercent(r.shareAbove90)} of {pluralize(r.cardCount, "active card")} above 90%
                 </p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-2xs text-fg-subtle">Weakest on {r.label}</p>
                 {r.weakest.length === 0 ? (
                   <p className="mt-1 text-sm text-fg-subtle">Nothing scheduled yet.</p>
