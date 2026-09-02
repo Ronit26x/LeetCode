@@ -85,7 +85,7 @@ export function CardBack({ data, className, openNotes, openCode }: { data: CardB
           <summary className="flex h-9 cursor-pointer list-none items-center gap-2 px-3 text-md font-medium select-none [&::-webkit-details-marker]:hidden">
             <CaretDown size={14} className="text-fg-subtle transition-transform group-open:rotate-0 -rotate-90" />
             Extended notes
-            <kbd className="ml-auto hidden rounded-[3px] border border-border px-1 font-sans text-2xs text-fg-subtle sm:inline">N</kbd>
+            <kbd aria-hidden="true" className="ml-auto hidden rounded-[3px] border border-border px-1 font-sans text-2xs text-fg-subtle sm:inline">N</kbd>
           </summary>
           <div className="border-t border-border px-4 py-3">
             <Markdown source={data.notes} />
@@ -98,7 +98,7 @@ export function CardBack({ data, className, openNotes, openCode }: { data: CardB
             <CaretDown size={14} className="text-fg-subtle transition-transform group-open:rotate-0 -rotate-90" />
             Code
             <span className="text-2xs font-normal text-fg-subtle">{data.snippets.length}</span>
-            <kbd className="ml-auto hidden rounded-[3px] border border-border px-1 font-sans text-2xs text-fg-subtle sm:inline">C</kbd>
+            <kbd aria-hidden="true" className="ml-auto hidden rounded-[3px] border border-border px-1 font-sans text-2xs text-fg-subtle sm:inline">C</kbd>
           </summary>
           <div className="flex flex-col gap-3 border-t border-border p-3">
             {data.snippets.map((s) => (

@@ -260,7 +260,7 @@ export function Session(props: SessionProps) {
             <Button variant="ghost" size="sm" onClick={undo} aria-label="Undo the last grade">
               <ArrowUUpLeft size={14} />
               Undo
-              <kbd className="hidden rounded-[3px] border border-border px-1 font-sans text-2xs text-fg-subtle sm:inline">Z</kbd>
+              <kbd aria-hidden="true" className="hidden rounded-[3px] border border-border px-1 font-sans text-2xs text-fg-subtle sm:inline">Z</kbd>
             </Button>
           ) : null}
           <Button variant="ghost" size="icon-sm" onClick={() => setHelpOpen(true)} aria-label="Keyboard shortcuts and rubric">
@@ -309,7 +309,7 @@ export function Session(props: SessionProps) {
         {!flipped ? (
           <Button size="lg" className="h-11 w-full" onClick={flip}>
             Flip
-            <kbd className="ml-1 hidden rounded-[3px] border border-primary-foreground/30 px-1 font-sans text-2xs sm:inline">Space</kbd>
+            <kbd aria-hidden="true" className="ml-1 hidden rounded-[3px] border border-primary-foreground/30 px-1 font-sans text-2xs sm:inline">Space</kbd>
           </Button>
         ) : notePrompt ? (
           <div className="rounded-md border border-border bg-surface p-3">

@@ -58,7 +58,7 @@ export function ProblemActions({
       <Button variant="outline" onClick={onEdit} aria-pressed={editing}>
         <PencilSimple size={16} />
         {editing ? "Editing" : "Edit"}
-        <kbd className="hidden rounded-[3px] border border-border px-1 font-sans text-2xs text-fg-subtle sm:inline">E</kbd>
+        <kbd aria-hidden="true" className="hidden rounded-[3px] border border-border px-1 font-sans text-2xs text-fg-subtle sm:inline">E</kbd>
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="More actions" />}>

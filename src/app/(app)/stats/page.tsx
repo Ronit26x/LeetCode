@@ -61,7 +61,7 @@ export default async function StatsPage() {
                     {r.weakest.map((w) => (
                       <li key={w.id} className="flex items-center gap-2 py-0.5 break-inside-avoid">
                         <span className="w-9 text-right text-2xs text-fg-subtle">{w.leetcodeNumber ?? ""}</span>
-                        <Link href={`/problems/${w.id}`} className="min-w-0 flex-1 truncate hover:underline underline-offset-2">
+                        <Link href={`/problems/${w.id}`} className="inline-flex min-h-6 min-w-0 flex-1 items-center truncate hover:underline underline-offset-2">
                           {w.title}
                         </Link>
                         <DifficultyBadge difficulty={w.difficulty} plain />

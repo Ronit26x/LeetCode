@@ -87,7 +87,7 @@ export function RatingButtons({
             <span className="flex items-center gap-1.5 text-sm font-semibold">
               {RATING_NAMES[r]}
               {hotkeys ? (
-                <kbd className="hidden rounded-[3px] border border-border px-1 font-sans text-2xs font-medium text-fg-subtle sm:inline">
+                <kbd aria-hidden="true" className="hidden rounded-[3px] border border-border px-1 font-sans text-2xs font-medium text-fg-subtle sm:inline">
                   {r}
                 </kbd>
               ) : null}

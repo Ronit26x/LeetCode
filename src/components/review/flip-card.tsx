@@ -54,9 +54,10 @@ export function FlipCard({
   return (
     <div className={cn("[perspective:1400px]", className)}>
       <div
-        role="button"
+        role="group"
         tabIndex={0}
-        aria-label={flipped ? "Card, showing the back" : "Card, showing the front. Press Space or click to flip"}
+        aria-label={flipped ? "Card back" : "Card front"}
+        aria-description={flipped ? undefined : "Press Space or click to flip"}
         onClick={() => {
           if (!flipped) onFlip?.();
         }}

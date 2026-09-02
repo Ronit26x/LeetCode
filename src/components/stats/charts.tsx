@@ -45,8 +45,11 @@ export function Heatmap({ data, tz }: { data: StatsData["heatmap"]; tz: string }
     return r < 0.25 ? 0.25 : r < 0.5 ? 0.45 : r < 0.75 ? 0.7 : 1;
   }
   const total = data.reduce((a, d) => a + d.count, 0);
+  const byMonth = new Map<string, number>();
+  for (const d of data) byMonth.set(d.day.slice(0, 7), (byMonth.get(d.day.slice(0, 7)) ?? 0) + d.count);
   return (
-    <div className="overflow-x-auto">
+    <div>
+      <div className="overflow-x-auto">
       <svg width={width + 28} height={height} className="block" role="img" aria-label={`Reviews per day over the last year: ${total} reviews`}>
         <g transform="translate(28,0)">
           {months.map((m) => (
@@ -62,7 +65,6 @@ export function Heatmap({ data, tz }: { data: StatsData["heatmap"]; tz: string }
               width={cell}
               height={cell}
               rx={2}
-              tabIndex={c.count ? 0 : -1}
               data-tip={`${c.count} ${c.count === 1 ? "review" : "reviews"} on ${formatInTimeZone(new Date(c.day + "T12:00:00Z"), "UTC", "MMM d")}`}
               className={c.count ? "fill-primary outline-none" : "fill-sunken"}
               style={c.count ? { fillOpacity: alpha(c.count) } : undefined}
@@ -75,6 +77,20 @@ export function Heatmap({ data, tz }: { data: StatsData["heatmap"]; tz: string }
           </text>
         ))}
       </svg>
+      </div>
+      <details className="mt-1">
+        <summary className="cursor-pointer text-2xs text-fg-muted">Table</summary>
+        <table className="mt-1 text-2xs">
+          <tbody>
+            {[...byMonth.entries()].map(([m, n]) => (
+              <tr key={m}>
+                <td className="pr-4 text-fg-muted">{formatInTimeZone(new Date(m + "-15T12:00:00Z"), "UTC", "MMM yyyy")}</td>
+                <td className="text-right">{n}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
     </div>
   );
 }
@@ -114,7 +130,6 @@ export function Columns({ data, ariaLabel }: { data: { label: string; count: num
                   d={`M${x},${8 + plotH} v${-Math.max(0, bh - 4)} a4,4 0 0 1 4,-4 h${barW - 8} a4,4 0 0 1 4,4 v${Math.max(0, bh - 4)} z`}
                   className="fill-primary"
                   data-tip={`${d.count} ${d.count === 1 ? "card" : "cards"} with stability ${d.label}`}
-                  tabIndex={0}
                 />
               ) : (
                 <rect x={x} y={8 + plotH - 1} width={barW} height={1} className="fill-border" />
@@ -128,7 +143,7 @@ export function Columns({ data, ariaLabel }: { data: { label: string; count: num
         })}
       </svg>
       <details className="mt-1">
-        <summary className="cursor-pointer text-2xs text-fg-subtle">Table</summary>
+        <summary className="cursor-pointer text-2xs text-fg-muted">Table</summary>
         <table className="mt-1 text-2xs">
           <tbody>
             {data.map((d) => (

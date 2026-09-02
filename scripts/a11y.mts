@@ -39,6 +39,14 @@ for (const p of paths) {
     .filter((a) => a.score !== null && a.score < 1 && a.scoreDisplayMode !== "notApplicable" && a.scoreDisplayMode !== "informative")
     .map((a) => `${a.id}: ${a.title}`);
   results.push({ path: p, a11y: score === null || score === undefined ? null : Math.round(score * 100), failures });
+  if (process.env.A11Y_DETAILS) {
+    for (const a of Object.values(lhr?.audits ?? {})) {
+      if (a.score !== null && a.score < 1 && a.details && "items" in a.details) {
+        const items = (a.details as { items: { node?: { snippet?: string; selector?: string; explanation?: string } }[] }).items.slice(0, 6);
+        for (const it of items) console.log(`  [${p}] ${a.id}: ${it.node?.selector ?? ""} ${(it.node?.snippet ?? "").slice(0, 140)} :: ${(it.node?.explanation ?? "").slice(0, 160)}`);
+      }
+    }
+  }
 }
 await chrome.kill();
 for (const r of results) {
