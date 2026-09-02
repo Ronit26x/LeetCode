@@ -1,6 +1,7 @@
 import type { ReviewLogRow } from "@/db/schema";
 import { formatDate, formatDuration, formatInterval, MODE_LABEL, RATING_LABEL } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { UndoLogButton } from "@/components/problems/undo-log-button";
 
 const RATING_CLASS: Record<number, string> = {
   0: "text-fg-subtle",
@@ -11,6 +12,8 @@ const RATING_CLASS: Record<number, string> = {
 };
 
 export function ReviewHistory({ logs, tz }: { logs: ReviewLogRow[]; tz: string }) {
+  const latest = logs.find((l) => !l.undoneAt && l.rating > 0);
+  const gradedCount = logs.filter((l) => !l.undoneAt && l.rating > 0).length;
   return (
     <section className="rounded-xl border border-border bg-surface px-4 py-3">
       <h2 className="text-md font-medium">History</h2>
@@ -32,6 +35,9 @@ export function ReviewHistory({ logs, tz }: { logs: ReviewLogRow[]; tz: string }
                   <span className="ml-auto text-fg-subtle">
                     {formatInterval(l.resultScheduledDays)}
                   </span>
+                ) : null}
+                {latest && l.id === latest.id ? (
+                  <UndoLogButton logId={l.id} isFirst={gradedCount === 1 && l.state === 0} />
                 ) : null}
               </div>
               {l.durationSeconds || l.note || l.undoneAt ? (

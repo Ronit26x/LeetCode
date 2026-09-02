@@ -1,13 +1,22 @@
 /**
- * Dev-only sample data. Refuses to run against anything that is not a pglite:// or localhost URL.
- * Usage: pnpm db:seed
+ * Sample problems with real FSRS histories, so a session can be tried before the real cards come
+ * due. Tagged "Sample" and batched as "sample" so they can be removed in one go.
+ * Usage: pnpm db:seed [--allow-remote] [--remove]
+ * Refuses non-local databases unless --allow-remote is given.
  */
 import { existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 const url = process.env.DATABASE_URL ?? "";
-if (!(url.startsWith("pglite://") || url.includes("localhost") || url.includes("127.0.0.1"))) {
+const args = process.argv.slice(2);
+const allowRemote = args.includes("--allow-remote");
+const remove = args.includes("--remove");
+const BATCH = "sample";
+if (
+  !allowRemote &&
+  !(url.startsWith("pglite://") || url.includes("localhost") || url.includes("127.0.0.1"))
+) {
   console.error("Refusing to seed a non-local database:", url.replace(/:[^:@/]+@/, ":***@"));
   process.exit(1);
 }
@@ -19,10 +28,30 @@ const { ensureDefaults, getSettings } = await import("@/db/bootstrap");
 const { applyFirstSolve } = await import("@/lib/fsrs/grade");
 const { buildFsrs, rowToCard, cardToRow, logToRow } = await import("@/lib/fsrs/core");
 const { cards, reviewLogs } = await import("@/db/schema");
-const { eq, sql } = await import("drizzle-orm");
+const { and, eq, sql } = await import("drizzle-orm");
 
 await ensureDefaults();
+if (remove) {
+  const gone = await db
+    .delete(problems)
+    .where(eq(problems.importBatch, BATCH))
+    .returning({ id: problems.id });
+  const sampleTag = await db.query.tags.findFirst({ where: sql`lower(${tags.name}) = 'sample'` });
+  if (sampleTag) await db.delete(tags).where(eq(tags.id, sampleTag.id));
+  console.log(`Removed ${gone.length} sample problems (cards and logs cascade)`);
+  process.exit(0);
+}
 const settings = await getSettings();
+let sampleTag = await db.query.tags.findFirst({ where: sql`lower(${tags.name}) = 'sample'` });
+if (!sampleTag) {
+  const [{ max }] = await db
+    .select({ max: sql<number>`coalesce(max(${tags.sortOrder}), -1)::int` })
+    .from(tags);
+  [sampleTag] = await db
+    .insert(tags)
+    .values({ name: "Sample", kind: "custom", color: "stone", sortOrder: max + 1 })
+    .returning();
+}
 const allTags = await db.select().from(tags);
 const tagId = (name: string) => allTags.find((t) => t.name === name)?.id;
 
@@ -46,6 +75,8 @@ type Seed = {
   code?: string;
   /** Review history: [daysAgo, mode, rating][] in chronological order. Empty = backlog. */
   history: [number, "revise" | "resolve", 1 | 2 | 3 | 4][];
+  /** Where the due date should land relative to now, in days. The FSRS state is untouched; the timeline slides. */
+  dueIn?: number;
 };
 
 const SEED: Seed[] = [
@@ -67,10 +98,11 @@ const SEED: Seed[] = [
       "- Insert after the lookup, or you can pair an element with itself.\n- Negative numbers and duplicates are fine with this order.",
     code: "class Solution {\npublic:\n\tvector<int> twoSum(vector<int>& nums, int target) {\n\t\tunordered_map<int, int> seen;\n\t\tfor (int i = 0; i < (int)nums.size(); ++i) {\n\t\t\tauto it = seen.find(target - nums[i]);\n\t\t\tif (it != seen.end()) return {it->second, i};\n\t\t\tseen[nums[i]] = i;\n\t\t}\n\t\treturn {};\n\t}\n};",
     history: [
-      [21, "resolve", 3],
-      [17, "revise", 3],
-      [9, "revise", 3],
+      [20, "resolve", 3],
+      [16, "revise", 3],
+      [9, "resolve", 3],
     ],
+    dueIn: -1,
   },
   {
     number: 3,
@@ -94,6 +126,7 @@ const SEED: Seed[] = [
       [4, "revise", 1],
       [2, "resolve", 3],
     ],
+    dueIn: 2,
   },
   {
     number: 146,
@@ -114,6 +147,7 @@ const SEED: Seed[] = [
     notes: "Follow-up: LFU cache (460) needs a frequency list of lists.",
     code: "class LRUCache {\n\tint cap;\n\tlist<pair<int,int>> order;\n\tunordered_map<int, list<pair<int,int>>::iterator> at;\npublic:\n\tLRUCache(int capacity) : cap(capacity) {}\n\tint get(int key) {\n\t\tauto it = at.find(key);\n\t\tif (it == at.end()) return -1;\n\t\torder.splice(order.begin(), order, it->second);\n\t\treturn it->second->second;\n\t}\n\tvoid put(int key, int value) {\n\t\tauto it = at.find(key);\n\t\tif (it != at.end()) {\n\t\t\tit->second->second = value;\n\t\t\torder.splice(order.begin(), order, it->second);\n\t\t\treturn;\n\t\t}\n\t\torder.emplace_front(key, value);\n\t\tat[key] = order.begin();\n\t\tif ((int)order.size() > cap) {\n\t\t\tat.erase(order.back().first);\n\t\t\torder.pop_back();\n\t\t}\n\t}\n};",
     history: [[6, "resolve", 2]],
+    dueIn: -4,
   },
   {
     number: 200,
@@ -132,10 +166,10 @@ const SEED: Seed[] = [
       "- Recursion depth on a full grid; use an explicit stack for large inputs.\n- Mark visited before recursing, not after.",
     history: [
       [40, "resolve", 3],
-      [35, "revise", 3],
-      [25, "revise", 3],
-      [10, "resolve", 3],
+      [33, "revise", 2],
+      [21, "revise", 2],
     ],
+    dueIn: 0,
   },
   {
     number: 239,
@@ -153,6 +187,7 @@ const SEED: Seed[] = [
     pitfalls:
       "- Store indices, not values, or you cannot tell when the max expires.\n- Use `<=` when popping to keep the deque strictly decreasing.",
     history: [[3, "resolve", 1]],
+    dueIn: -2,
   },
   {
     number: 322,
@@ -202,14 +237,17 @@ const SEED: Seed[] = [
     history: [
       [30, "resolve", 3],
       [26, "revise", 3],
-      [18, "revise", 3],
-      [8, "revise", 2],
+      [17, "resolve", 3],
+      [9, "revise", 3],
     ],
+    dueIn: 5,
   },
 ];
 
 for (const s of SEED) {
-  const existing = await db.query.problems.findFirst({ where: eq(problems.slug, s.slug) });
+  const existing = await db.query.problems.findFirst({
+    where: and(eq(problems.slug, s.slug), eq(problems.source, "leetcode")),
+  });
   if (existing) continue;
   const createdAt = s.history.length ? daysAgo(s.history[0][0] + 1) : daysAgo(2);
   const [p] = await db
@@ -228,11 +266,12 @@ for (const s of SEED) {
       spaceComplexity: s.space,
       pitfalls: s.pitfalls,
       notes: s.notes ?? "",
+      importBatch: BATCH,
       createdAt,
       updatedAt: createdAt,
     })
     .returning();
-  const ids = s.tags.map(tagId).filter((x): x is string => !!x);
+  const ids = [...s.tags.map(tagId).filter((x): x is string => !!x), sampleTag.id];
   if (ids.length)
     await db
       .insert(problemTags)
@@ -295,5 +334,44 @@ if (lsw && lrc) {
     ])
     .onConflictDoNothing();
 }
+// Slide each sample's timeline so the due date lands at dueIn days from now.
+for (const sd of SEED) {
+  if (sd.dueIn === undefined) continue;
+  const row = await db.query.problems.findFirst({
+    where: eq(problems.slug, sd.slug),
+    with: { card: true },
+  });
+  if (!row?.card) continue;
+  const target = now.getTime() + sd.dueIn * DAY;
+  const shift = row.card.due.getTime() - target;
+  if (Math.abs(shift) < 60_000) continue;
+  const shifted = (d: Date | null) => (d ? new Date(d.getTime() - shift) : null);
+  await db
+    .update(cards)
+    .set({ due: shifted(row.card.due)!, lastReview: shifted(row.card.lastReview) })
+    .where(eq(cards.problemId, row.id));
+  const logs = await db.select().from(reviewLogs).where(eq(reviewLogs.problemId, row.id));
+  for (const l of logs) {
+    await db
+      .update(reviewLogs)
+      .set({
+        reviewedAt: shifted(l.reviewedAt)!,
+        due: shifted(l.due)!,
+        prevDue: shifted(l.prevDue),
+      })
+      .where(eq(reviewLogs.id, l.id));
+  }
+  await db
+    .update(problems)
+    .set({ firstSolvedAt: shifted(row.firstSolvedAt), createdAt: shifted(row.createdAt)! })
+    .where(eq(problems.id, row.id));
+}
 console.log("Seeded", SEED.length, "problems");
+for (const row of await db.query.problems.findMany({
+  where: eq(problems.importBatch, BATCH),
+  with: { card: true },
+})) {
+  const due = row.card ? ((row.card.due.getTime() - now.getTime()) / DAY).toFixed(1) : "backlog";
+  console.log(`  ${row.title.padEnd(48)} due in ${due}d`);
+}
 process.exit(0);

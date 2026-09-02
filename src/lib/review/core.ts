@@ -125,11 +125,28 @@ export async function applyUndo(
     const prev = f.rollback(rowToCard(row), rowToLog(log));
     // rollback sets due to the review instant; the snapshot restores the real previous due.
     if (log.prevDue) prev.due = log.prevDue;
+    await tx.update(reviewLogs).set({ undoneAt: now }).where(eq(reviewLogs.id, log.id));
+    // Undoing the very first rating leaves nothing to remember: drop the card and return the
+    // problem to the backlog, exactly as it was before the accidental click.
+    if (log.state === 0 && prev.state === 0) {
+      await tx.delete(cards).where(eq(cards.problemId, log.problemId));
+      await tx
+        .update(problems)
+        .set({
+          status: "backlog",
+          lastMode: null,
+          firstSolvedAt: null,
+          reviseCount: sql`greatest(${problems.reviseCount} - ${log.mode === "revise" ? 1 : 0}, 0)`,
+          resolveCount: sql`greatest(${problems.resolveCount} - ${log.mode === "resolve" ? 1 : 0}, 0)`,
+          updatedAt: now,
+        })
+        .where(eq(problems.id, log.problemId));
+      return { problemId: log.problemId };
+    }
     await tx
       .update(cards)
       .set({ ...cardToRow(prev), updatedAt: now })
       .where(eq(cards.problemId, log.problemId));
-    await tx.update(reviewLogs).set({ undoneAt: now }).where(eq(reviewLogs.id, log.id));
     const previous = await tx.query.reviewLogs.findFirst({
       where: and(
         eq(reviewLogs.problemId, log.problemId),

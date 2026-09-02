@@ -149,6 +149,35 @@ describe("grading", () => {
     await expect(applyUndo(db, settings, res.logId, new Date())).rejects.toThrow(/already undone/);
   });
 
+  it("undoing the first rating removes the card and returns the problem to the backlog", async () => {
+    const settings = await getSettings();
+    const p = await makeProblem("undo-first");
+    const t0 = new Date("2026-09-01T17:00:00Z");
+    await db.transaction((tx) =>
+      applyFirstSolve(tx, p.id, Rating.Good, t0, settings, { mode: "revise" }),
+    );
+    const log = (await db.query.reviewLogs.findFirst({ where: eq(reviewLogs.problemId, p.id) }))!;
+    let row = (await db.query.problems.findFirst({
+      where: eq(problems.id, p.id),
+      with: { card: true },
+    }))!;
+    expect(row.status).toBe("active");
+    expect(row.reviseCount).toBe(1);
+    await applyUndo(db, settings, log.id, new Date(t0.getTime() + 60_000));
+    row = (await db.query.problems.findFirst({
+      where: eq(problems.id, p.id),
+      with: { card: true },
+    }))!;
+    expect(row.card).toBeNull();
+    expect(row.status).toBe("backlog");
+    expect(row.reviseCount).toBe(0);
+    expect(row.resolveCount).toBe(0);
+    expect(row.lastMode).toBeNull();
+    expect(row.firstSolvedAt).toBeNull();
+    const undone = (await db.query.reviewLogs.findFirst({ where: eq(reviewLogs.id, log.id) }))!;
+    expect(undone.undoneAt).not.toBeNull();
+  });
+
   it("only the most recent grade can be undone", async () => {
     const settings = await getSettings();
     const p = await makeProblem("undo-order");
