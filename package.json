@@ -81,5 +81,11 @@
   "packageManager": "pnpm@11.25.0",
   "engines": {
     "node": ">=22"
+  },
+  "description": "A personal LeetCode tracker and FSRS-6 spaced-repetition reviser for interview prep.",
+  "homepage": "https://recur-ronit.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ronit26x/LeetCode.git"
   }
 }
