@@ -4,7 +4,7 @@ import { roadmapMarks } from "@/db/schema";
 import type { RoadmapMark, RoadmapMarkStatus, RoadmapMarks } from "./marks";
 
 /**
- * Set, change or clear the mark on one roadmap problem. Marking done stamps today's calendar day
+ * Set, change or clear the mark on one roadmap problem. Marking done stamps today's review day
  * the first time; a row that is already done keeps its day. Redo clears it. Null removes the row.
  */
 export async function applyRoadmapMark(

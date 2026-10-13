@@ -149,6 +149,13 @@ nothing in the scheduler reads it. Marking a roadmap problem done does not creat
 problem enters the schedule only through the usual add or backlog doors. Keeping the two apart
 means the plan can be edited or replaced without touching memory state.
 
+The roadmap's "today" is the review day, not the calendar day. Marks made at one in the morning
+belong to the session that started the evening before, and the pace panel counts days the same way
+the reviser does (`settings.dayStartHour` in `settings.timezone`). With the calendar day a late
+session rolled the plan to day 2 at midnight, dropped the running average by half and called the
+plan off pace while the first day was still going. Both the stamp and the pace math now use
+`reviewDayKey`, so the two surfaces agree on what day it is.
+
 ## One roadmap, four bands, dashed hand-offs
 
 The page had four separate week graphs joined by one arrow. The user asked for a single roadmap

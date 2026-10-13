@@ -156,7 +156,8 @@ mapped to a four-week plan before the interview. It is a NeetCode-style map, not
   from the first. Selecting a node or a week title filters the list below. On phones the same
   weeks render as a tappable list.
 - Done / Redo marks are the only state (`roadmap_marks`, keyed by LeetCode number). Marking done
-  stamps the calendar day in your time zone, which feeds the pace panel: day n of 23, average per
+  stamps the review day (the same 9 am boundary as the reviser, so a late night still counts as
+  the day it started), which feeds the pace panel: day n of 23, average per
   day, the projected finish by Nov 3 and a verdict per tier (core 218, core and plus 250, all 413).
 - Nothing here touches cards, review logs or FSRS, and nothing in the reviser reads the marks.
   Problems are linked to LeetCode, not to the library.

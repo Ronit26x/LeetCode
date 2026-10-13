@@ -3,7 +3,7 @@
 import { getDb } from "@/db";
 import { getSettings } from "@/db/bootstrap";
 import { requireSession } from "@/lib/session";
-import { calendarDayKey } from "@/lib/day";
+import { reviewDayKey } from "@/lib/day";
 import { firstIssue, roadmapMarkSchema } from "@/lib/validation";
 import { ROADMAP_NUMBERS } from "@/lib/roadmap/data";
 import { applyRoadmapMark } from "@/lib/roadmap/core";
@@ -19,7 +19,7 @@ export async function setRoadmapMark(raw: unknown): Promise<ActionResult<Roadmap
   if (!ROADMAP_NUMBERS.has(number))
     return { ok: false, error: "That problem is not on the roadmap." };
   const [db, settings] = await Promise.all([getDb(), getSettings()]);
-  const today = calendarDayKey(new Date(), settings.timezone);
+  const today = reviewDayKey(new Date(), settings.timezone, settings.dayStartHour);
   const mark = await applyRoadmapMark(db, number, status, today);
   return { ok: true, data: mark };
 }

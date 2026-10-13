@@ -280,7 +280,7 @@ export const queueDays = pgTable("queue_days", {
 export const roadmapMarks = pgTable("roadmap_marks", {
   problemNumber: integer("problem_number").primaryKey(),
   status: roadmapMarkStatusEnum("status").notNull(),
-  /** Calendar day (in settings.timezone) the problem was marked done. Null for redo. */
+  /** Review day (settings.dayStartHour in settings.timezone) the problem was marked done. Null for redo. */
   doneOn: date("done_on", { mode: "string" }),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 });

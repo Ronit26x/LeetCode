@@ -41,7 +41,7 @@ const GOALS: { key: PaceGoal["key"]; label: string; pick: (p: RoadmapProblem) =>
   { key: "all", label: "Everything", pick: () => true },
 ];
 
-/** Pure. `today` is the calendar day in the user's time zone, YYYY-MM-DD. */
+/** Pure. `today` is the review day (dayStartHour in the user's zone), YYYY-MM-DD. */
 export function computePace(marks: RoadmapMarks, today: string): Pace {
   const total = ROADMAP_PLAN.totalDays;
   const sinceStart = dayNumber(today) - dayNumber(ROADMAP_PLAN.start) + 1;

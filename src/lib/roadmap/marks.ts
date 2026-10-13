@@ -13,7 +13,7 @@ export type RoadmapMarkStatus = "done" | "redo";
 
 export interface RoadmapMark {
   status: RoadmapMarkStatus;
-  /** Calendar day the problem was marked done, for the pace panel. Null unless done. */
+  /** Review day the problem was marked done, for the pace panel. Null unless done. */
   doneOn: string | null;
 }
 
