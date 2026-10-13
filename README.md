@@ -143,6 +143,24 @@ cards or review logs. The backlog orders core before warmup and stalest prior so
 into the schedule: "Solved it again" (a resolve) and "Still remember it" (a revise with Easy
 refused). The coverage strip shows core / warmup counts and how many are scheduled per topic.
 
+## The roadmap
+
+`/roadmap` is a second, independent surface: the Google pattern list (413 problems in 34 patterns:
+377 Google-tagged on LeetCode in the last six months, 12 more NeetCode stars, 24 gap-fillers)
+mapped to a four-week plan before the interview. It is a NeetCode-style map, not a scheduler.
+
+- The list lives in `data/roadmap/problems.json` and the patterns, weeks and graph in
+  `src/lib/roadmap/data.ts`. Static, curated, edited by hand.
+- One roadmap, four week bands. Each pattern is a node with its own progress bar; solid edges are
+  prerequisites inside a week, dashed edges hand off to the next week, so every topic is reachable
+  from the first. Selecting a node or a week title filters the list below. On phones the same
+  weeks render as a tappable list.
+- Done / Redo marks are the only state (`roadmap_marks`, keyed by LeetCode number). Marking done
+  stamps the calendar day in your time zone, which feeds the pace panel: day n of 23, average per
+  day, the projected finish by Nov 3 and a verdict per tier (core 218, core and plus 250, all 413).
+- Nothing here touches cards, review logs or FSRS, and nothing in the reviser reads the marks.
+  Problems are linked to LeetCode, not to the library.
+
 ## Adding a problem
 
 Paste any problem URL. LeetCode links are prefilled from LeetCode's GraphQL endpoint (number,
@@ -157,7 +175,7 @@ extended notes. "Solved it today" asks how the solve went and schedules the firs
 
 Anywhere outside a text field: `⌘K` or `/` opens the palette (type a title or number; `↵` opens
 the problem, `⌘↵` reviews it now if it has a card), `N` adds a problem, `G` then `T` / `B` / `P` /
-`S` / `,` jumps to Today, Backlog, Problems, Stats or Settings, `?` shows the keys. On a problem
+`R` / `S` / `,` jumps to Today, Backlog, Problems, Roadmap, Stats or Settings, `?` shows the keys. On a problem
 page `R` starts a review and `E` edits. In a session: `Space` flips, `1` to `4` grade, `R` toggles
 Revise / Resolve, `N` notes, `C` code, `O` opens the source, `Z` undoes, `Esc` leaves.
 
@@ -167,7 +185,7 @@ Revise / Resolve, `N` notes, `C` code, `O` opens the source, `Z` undoes, `Esc` l
 | --- | --- |
 | `pnpm dev` / `pnpm build` / `pnpm start` | Next.js |
 | `pnpm lint` / `pnpm typecheck` / `pnpm format` | ESLint, `tsc --noEmit`, Prettier |
-| `pnpm test` | Vitest: day boundary and DST, mode heuristic, retention ramp math and the daily ramp pass, queue interleaving, grading and undo, the GitHub allowlist (database cases on PGlite) |
+| `pnpm test` | Vitest: day boundary and DST, mode heuristic, retention ramp math and the daily ramp pass, queue interleaving, grading and undo, the GitHub allowlist, the roadmap data, layout, pace and marks (database cases on PGlite) |
 | `pnpm test:e2e` | Playwright smoke: sign in, add from a URL (stubbed LeetCode), solve, review, grade, undo, theme persistence, tab-safe copy |
 | `pnpm db:generate` / `pnpm db:migrate` / `pnpm db:studio` | drizzle-kit |
 | `pnpm db:seed` | Sample data, local databases only |
@@ -178,10 +196,11 @@ Revise / Resolve, `N` notes, `C` code, `O` opens the source, `Z` undoes, `Esc` l
 ## Layout
 
 ```
-src/app            routes: (app)/today, backlog, problems, problems/[id], problems/new, review, stats, settings; login; api/auth; api/cron
-src/components     shell, common, problems, review, today, stats, settings, code, notes, ui (restyled shadcn)
+src/app            routes: (app)/today, backlog, problems, problems/[id], problems/new, roadmap, review, stats, settings; login; api/auth; api/cron
+src/components     shell, common, problems, review, today, roadmap, stats, settings, code, notes, ui (restyled shadcn)
 src/db             schema, client (postgres.js, PGlite opt-in), bootstrap, defaults
-src/lib            fsrs (core, scheduler, grade, suggest-mode), queue, review, problems, tags, settings, data, stats, day, leetcode, validation
+src/lib            fsrs (core, scheduler, grade, suggest-mode), queue, review, problems, tags, settings, data, stats, roadmap, day, leetcode, validation
+data/roadmap       the Google pattern list the roadmap is built from (static JSON)
 tests              unit (Vitest), e2e (Playwright + LeetCode stub)
 drizzle            migrations
 ```

@@ -49,7 +49,7 @@ export const GLOBAL_KEYS: [string, string][] = [
   ["⌘K or /", "Find a problem, page or action"],
   ["↵ in ⌘K", "Open the problem; ⌘↵ reviews it now"],
   ["N", "Add a problem"],
-  ["G then T / B / P / S / ,", "Go to Today, Backlog, Problems, Stats, Settings"],
+  ["G then T / B / P / R / S / ,", "Go to Today, Backlog, Problems, Roadmap, Stats, Settings"],
   ["R", "On a problem page: review it now"],
   ["E", "On a problem page: edit"],
   ["?", "Keyboard help"],

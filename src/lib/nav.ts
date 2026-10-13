@@ -1,4 +1,4 @@
-export type NavKey = "today" | "backlog" | "problems" | "stats" | "settings";
+export type NavKey = "today" | "backlog" | "problems" | "roadmap" | "stats" | "settings";
 
 export interface NavItem {
   key: NavKey;
@@ -10,6 +10,7 @@ export const NAV_ITEMS: NavItem[] = [
   { key: "today", href: "/today", label: "Today" },
   { key: "backlog", href: "/backlog", label: "Backlog" },
   { key: "problems", href: "/problems", label: "Problems" },
+  { key: "roadmap", href: "/roadmap", label: "Roadmap" },
   { key: "stats", href: "/stats", label: "Stats" },
   { key: "settings", href: "/settings", label: "Settings" },
 ];

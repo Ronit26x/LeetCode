@@ -16,7 +16,7 @@ export function MobileTabBar({ hidden }: { hidden?: boolean }) {
       aria-label="Primary"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-safe lg:hidden"
     >
-      <ul className="grid h-14 grid-cols-5">
+      <ul className="grid h-14 grid-cols-6">
         {NAV_ITEMS.map((item) => {
           const IconComp = NAV_ICONS[item.key];
           const isActive = active === item.key;

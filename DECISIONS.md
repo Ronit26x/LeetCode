@@ -138,3 +138,24 @@ the action response, so the "what went wrong" prompt after Again or Hard was rep
 card before it could be typed into. Every page under the shell is `force-dynamic`, so nothing was
 ever stale; the session advances with `router.replace` when the user is done. Space now toggles the
 card both ways, and the first flip is the instant that grade previews and the review timer use.
+
+## The roadmap is a second list, not a second scheduler
+
+The Google pattern list arrived as a standalone page: 413 problems grouped by pattern, mapped to
+four weeks, with Done / Redo marks and a pace projection. It is now `/roadmap` inside Recur so the
+plan and the reviser sit together, and it stays independent on purpose: the list is static data
+(`data/roadmap/problems.json`), the only table is `roadmap_marks` keyed by LeetCode number, and
+nothing in the scheduler reads it. Marking a roadmap problem done does not create a card; a
+problem enters the schedule only through the usual add or backlog doors. Keeping the two apart
+means the plan can be edited or replaced without touching memory state.
+
+## One roadmap, four bands, dashed hand-offs
+
+The page had four separate week graphs joined by one arrow. The user asked for a single roadmap
+partitioned by week with every element connected, in the spirit of NeetCode's map. The graph is one
+layered layout over all 34 patterns: layers run top to bottom and belong to a week, the week bands
+are drawn behind them, and each week's last layer hands off to the next week's first layer with
+dashed edges, so the whole thing is one connected drawing and the reading order is the plan order.
+Hand-offs do not pull nodes during layout, so each week's prerequisite tree stays centered in its
+band. Below the tablet breakpoint the SVG would shrink below legibility, so phones get the same
+weeks and topics as a tappable list without edges.

@@ -17,6 +17,7 @@ const GO: Record<string, string> = {
   t: "/today",
   b: "/backlog",
   p: "/problems",
+  r: "/roadmap",
   s: "/stats",
   ",": "/settings",
 };

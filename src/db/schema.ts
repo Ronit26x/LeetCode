@@ -43,6 +43,7 @@ export const snippetLanguageEnum = pgEnum("snippet_language", ["cpp", "python", 
 export const problemSourceEnum = pgEnum("problem_source", ["leetcode", "gfg", "other"]);
 export const solvePrecisionEnum = pgEnum("solve_precision", ["day", "month", "year"]);
 export const problemTierEnum = pgEnum("problem_tier", ["core", "warmup", "skip"]);
+export const roadmapMarkStatusEnum = pgEnum("roadmap_mark_status", ["done", "redo"]);
 
 export type Difficulty = (typeof difficultyEnum.enumValues)[number];
 export type ProblemStatus = (typeof problemStatusEnum.enumValues)[number];
@@ -53,6 +54,7 @@ export type SnippetLanguage = (typeof snippetLanguageEnum.enumValues)[number];
 export type ProblemSource = (typeof problemSourceEnum.enumValues)[number];
 export type SolvePrecision = (typeof solvePrecisionEnum.enumValues)[number];
 export type ProblemTier = (typeof problemTierEnum.enumValues)[number];
+export type RoadmapMarkStatus = (typeof roadmapMarkStatusEnum.enumValues)[number];
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
@@ -271,6 +273,18 @@ export const queueDays = pgTable("queue_days", {
     .defaultNow(),
 });
 
+/**
+ * Done / Redo marks on the static roadmap list (src/lib/roadmap/data.ts), keyed by LeetCode number.
+ * Progress for the plan only: never read by the scheduler, never creates a card or a log.
+ */
+export const roadmapMarks = pgTable("roadmap_marks", {
+  problemNumber: integer("problem_number").primaryKey(),
+  status: roadmapMarkStatusEnum("status").notNull(),
+  /** Calendar day (in settings.timezone) the problem was marked done. Null for redo. */
+  doneOn: date("done_on", { mode: "string" }),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+});
+
 export const problemsRelations = relations(problems, ({ one, many }) => ({
   card: one(cards, { fields: [problems.id], references: [cards.problemId] }),
   snippets: many(snippets),
@@ -321,3 +335,4 @@ export type CardRow = typeof cards.$inferSelect;
 export type ReviewLogRow = typeof reviewLogs.$inferSelect;
 export type Settings = typeof settings.$inferSelect;
 export type QueueDay = typeof queueDays.$inferSelect;
+export type RoadmapMarkRow = typeof roadmapMarks.$inferSelect;

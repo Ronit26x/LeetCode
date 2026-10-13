@@ -248,3 +248,9 @@ export const exportSchema = z.object({
   ),
 });
 export type ExportFile = z.infer<typeof exportSchema>;
+
+export const roadmapMarkSchema = z.object({
+  number: z.number().int().positive().max(100_000),
+  status: z.enum(["done", "redo"]).nullable(),
+});
+export type RoadmapMarkInput = z.input<typeof roadmapMarkSchema>;

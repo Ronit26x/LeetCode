@@ -14,6 +14,7 @@ const DEFAULT_PATHS = [
   "/backlog",
   "/problems",
   "/problems/new",
+  "/roadmap",
   "/stats",
   "/settings",
   "/login",

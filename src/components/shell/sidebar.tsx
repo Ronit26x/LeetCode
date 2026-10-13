@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, ChartBar, GearSix, Stack, Tray } from "@phosphor-icons/react/dist/ssr";
+import {
+  CalendarCheck,
+  ChartBar,
+  GearSix,
+  MapTrifold,
+  Stack,
+  Tray,
+} from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, activeNavKey, type NavKey } from "@/lib/nav";
@@ -12,6 +19,7 @@ export const NAV_ICONS: Record<NavKey, Icon> = {
   today: CalendarCheck,
   backlog: Tray,
   problems: Stack,
+  roadmap: MapTrifold,
   stats: ChartBar,
   settings: GearSix,
 };
