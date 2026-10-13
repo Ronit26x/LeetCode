@@ -195,13 +195,12 @@ export async function getTodayQueue(now = new Date()): Promise<TodayQueue> {
     againIds: [...new Set(doneRows.filter((r) => r.rating === 1).map((r) => r.problemId))],
   };
 
-  const tomorrowEnd = new Date(dayEndAt.getTime() + 86_400_000);
+  // Tomorrow's review day runs from the end of today's to the next day-start hour after that.
+  // dayEnd handles DST, so tomorrow may be 23 or 25 hours long.
+  const tomorrowEnd = dayEnd(dayEndAt, tz, hour);
   const tomorrow = withCard.filter((p) => {
     const t = p.card!.due.getTime();
-    return (
-      t >= dayEndAt.getTime() &&
-      t < tomorrowEnd.getTime() + (dayEnd(tomorrowEnd, tz, hour).getTime() - tomorrowEnd.getTime())
-    );
+    return t >= dayEndAt.getTime() && t < tomorrowEnd.getTime();
   }).length;
 
   const revises = items.filter((i) => i.suggestion?.mode !== "resolve").length;
