@@ -26,7 +26,7 @@ import {
 import { computePace } from "@/lib/roadmap/pace";
 
 const HARD = ROADMAP_PROBLEMS.filter((p) => p.difficulty === "hard");
-const SOLVED_BEFORE = ROADMAP_PROBLEMS.filter((p) => p.solvedBefore).length;
+const SOLVED_BEFORE = ROADMAP_PROBLEMS.filter((p) => p.solvedBefore);
 
 /**
  * The whole roadmap screen below the page header. Marks are kept in local state and written
@@ -79,6 +79,10 @@ export function RoadmapView({
     () => HARD.filter((p) => marks[p.number]?.status === "done").length,
     [marks],
   );
+  const resolved = React.useMemo(
+    () => SOLVED_BEFORE.filter((p) => marks[p.number]?.status === "done").length,
+    [marks],
+  );
   const patternsComplete = React.useMemo(
     () =>
       PATTERN_CODES.filter((c) => {
@@ -125,7 +129,11 @@ export function RoadmapView({
           value={`${hardsDone} / ${HARD.length}`}
           sub="Hard problems on the list"
         />
-        <StatTile label="Solved before" value={SOLVED_BEFORE} sub="Cold re-solves" />
+        <StatTile
+          label="Solved before"
+          value={`${resolved} / ${SOLVED_BEFORE.length}`}
+          sub="Cold re-solves done this pass"
+        />
         <StatTile
           label="Patterns"
           value={PATTERN_CODES.length}
