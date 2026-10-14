@@ -156,6 +156,21 @@ session rolled the plan to day 2 at midnight, dropped the running average by hal
 plan off pace while the first day was still going. Both the stamp and the pace math now use
 `reviewDayKey`, so the two surfaces agree on what day it is.
 
+## The pace verdict is a plan line, not a projection
+
+The pace panel used to project the running average to the end of practice and call a tier on
+track when the projection cleared it. That average divides by the days elapsed including today,
+so it swings through the day, and a strong first day props up a weak second one: 15 on day one
+and 4 on day two still projected a finish, while the user had plainly not done the day's work.
+Each tier is now spread evenly over the practice days and the verdict compares Done marks with
+that line at the end of today: on track (and how far ahead), N to go today when only today's
+share is owed, or behind when a deficit is carried in. The tick on each bar is the plan line, so
+the picture matches the words. Off days (`ROADMAP_PLAN.offDays`) are inside the window but not
+practice days: the line does not move on them and nothing is due; the list is empty for now. The
+plan starts Oct 14 (marks from before it still count) and runs to Nov 10, which ends at 9 am on
+Nov 11 by the review day boundary, with no taper, because the user asked for every day up to the
+interview to count.
+
 ## One roadmap, four bands, dashed hand-offs
 
 The page had four separate week graphs joined by one arrow. The user asked for a single roadmap

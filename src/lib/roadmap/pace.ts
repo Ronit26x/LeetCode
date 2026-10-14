@@ -1,7 +1,18 @@
-import { ROADMAP_PLAN, ROADMAP_PROBLEMS, type RoadmapProblem } from "./data";
+import {
+  ROADMAP_PLAN,
+  ROADMAP_PROBLEMS,
+  practiceDaysOf,
+  type RoadmapPlan,
+  type RoadmapProblem,
+} from "./data";
 import type { RoadmapMarks } from "./marks";
 
-export type PaceVerdictKind = "done" | "not-started" | "on-track" | "close" | "off-pace";
+/**
+ * done: nothing left. not-started: before the plan. on-track: at or past the plan line.
+ * due: short by at most today's share, so a normal day gets back on track. behind: short by more
+ * than today's share (or short at all on an off day, or after the end).
+ */
+export type PaceVerdictKind = "done" | "not-started" | "on-track" | "due" | "behind";
 
 export interface PaceGoal {
   key: "core" | "plus" | "all";
@@ -9,30 +20,35 @@ export interface PaceGoal {
   total: number;
   done: number;
   remaining: number;
+  /** Where the plan line is by the end of today; on an off day, by the end of the last practice day. */
+  expected: number;
   /** Problems a day needed from today to finish by the end of practice; null when no day is left. */
   perDay: number | null;
-  /** Where the current average lands by the end of practice, capped at the goal. */
-  projected: number;
   verdict: { kind: PaceVerdictKind; text: string };
 }
 
 export interface Pace {
-  /** Days of practice elapsed including today, 0 before the plan starts, capped at the plan length. */
+  /** Practice days elapsed including today, 0 before the plan starts, capped at the plan length. An off day counts the practice days before it. */
   elapsed: number;
-  /** Full days left after today. */
+  /** Practice days left after today. */
   left: number;
+  /** Today is inside the window but has nothing planned. */
+  offDay: boolean;
   done: number;
   doneToday: number;
-  avgPerDay: number;
-  projected: number;
+  /** Average over the practice days before today, which is still being worked. Null on day 1. */
+  avgPerDay: number | null;
   summary: string;
   goals: PaceGoal[];
 }
 
-/** Whole days since the epoch for a YYYY-MM-DD string, so two dates subtract to a day count. */
-function dayNumber(iso: string): number {
+const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "Tue Nov 10" for a YYYY-MM-DD string. */
+export function dayLabel(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
-  return Math.floor(Date.UTC(y, m - 1, d) / 86_400_000);
+  return `${DOW[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]} ${MON[m - 1]} ${d}`;
 }
 
 const GOALS: { key: PaceGoal["key"]; label: string; pick: (p: RoadmapProblem) => boolean }[] = [
@@ -41,28 +57,55 @@ const GOALS: { key: PaceGoal["key"]; label: string; pick: (p: RoadmapProblem) =>
   { key: "all", label: "Everything", pick: () => true },
 ];
 
-/** Pure. `today` is the review day (dayStartHour in the user's zone), YYYY-MM-DD. */
-export function computePace(marks: RoadmapMarks, today: string): Pace {
-  const total = ROADMAP_PLAN.totalDays;
-  const sinceStart = dayNumber(today) - dayNumber(ROADMAP_PLAN.start) + 1;
-  const elapsed = Math.max(0, Math.min(total, sinceStart));
-  const left = Math.max(0, total - elapsed);
-  const ended = dayNumber(today) > dayNumber(ROADMAP_PLAN.end);
+/**
+ * Pure. `today` is the review day (dayStartHour in the user's zone), YYYY-MM-DD.
+ *
+ * Each goal is spread evenly over the practice days, and the verdict compares Done marks with
+ * that plan line at the end of today. A strong first day never carries a weak one: the line only
+ * moves one day's share at a time, so "on track" means the work up to and including today is
+ * done, and "to go today" is exactly what gets back on it.
+ */
+export function computePace(
+  marks: RoadmapMarks,
+  today: string,
+  plan: RoadmapPlan = ROADMAP_PLAN,
+): Pace {
+  const days = practiceDaysOf(plan);
+  const total = days.length;
+  const elapsed = days.filter((d) => d <= today).length;
+  const left = total - elapsed;
+  const ended = today > plan.end;
+  const practiceToday = days.includes(today);
+  const offDay = today >= plan.start && !ended && !practiceToday;
+  const START = dayLabel(plan.start);
+  const END = dayLabel(plan.end);
+  const INTERVIEW = dayLabel(plan.interview);
   const isDone = (p: RoadmapProblem) => marks[p.number]?.status === "done";
   const done = ROADMAP_PROBLEMS.filter(isDone).length;
   const doneToday = ROADMAP_PROBLEMS.filter(
     (p) => isDone(p) && marks[p.number]?.doneOn === today,
   ).length;
-  const avgPerDay = elapsed ? done / elapsed : 0;
-  const projected = Math.round(done + avgPerDay * left);
+  // Today is still being worked (unless it is an off day), so the average covers the days before it.
+  const finishedDays = offDay || ended ? elapsed : elapsed - 1;
+  const avgPerDay = finishedDays > 0 ? (done - doneToday) / finishedDays : null;
+  const nextOff = plan.offDays.find((d) => d > today && d <= plan.end);
 
   let summary: string;
   if (elapsed === 0) {
-    summary = `Practice runs Mon Oct 12 to Tue ${ROADMAP_PLAN.endLabel} (${total} days), then a taper ${ROADMAP_PLAN.taperLabel} and the interview ${ROADMAP_PLAN.interviewLabel}. Mark problems done as you finish them and this projects where you will land.`;
+    const off = plan.offDays.length ? `, with ${plan.offDays.map(dayLabel).join(", ")} off` : "";
+    const head = done ? ` ${done} done before the start, counted from day 1.` : "";
+    summary = `Practice runs ${START} to ${END}: ${total} days${off}, then the interview ${INTERVIEW}.${head} Mark problems done as you finish them and each goal shows where you stand against the plan.`;
   } else if (ended) {
-    summary = `Practice ended ${ROADMAP_PLAN.endLabel} with ${done} done. The taper ${ROADMAP_PLAN.taperLabel} is for redos, review and mocks, then the interview ${ROADMAP_PLAN.interviewLabel}.`;
+    summary = `Practice ended ${END} with ${done} done. The interview is ${INTERVIEW}.`;
   } else {
-    summary = `Day ${elapsed} of ${total} · ${done} done (${doneToday} today) · average ${avgPerDay.toFixed(1)} a day · at this pace you finish about ${projected} by ${ROADMAP_PLAN.endLabel}. The taper ${ROADMAP_PLAN.taperLabel} is kept for redos, review and mocks.`;
+    const parts = offDay
+      ? [`${dayLabel(today)} is an off day`, `${done} done after ${elapsed} of ${total} days`]
+      : [`Day ${elapsed} of ${total}`, `${done} done (${doneToday} today)`];
+    if (avgPerDay !== null)
+      parts.push(`${avgPerDay.toFixed(1)} a day${offDay ? " so far" : " before today"}`);
+    if (nextOff) parts.push(`${dayLabel(nextOff)} off`);
+    parts.push(`practice ends ${END}, then the interview ${INTERVIEW}`);
+    summary = parts.join(" · ");
   }
 
   const goals = GOALS.map(({ key, label, pick }): PaceGoal => {
@@ -70,20 +113,24 @@ export function computePace(marks: RoadmapMarks, today: string): Pace {
     const n = set.length;
     const d = set.filter(isDone).length;
     const remaining = n - d;
-    // Today still counts as a working day until something is marked done on it; after the end
-    // date no day is left at all.
-    const daysAvailable = ended ? 0 : left + (doneToday ? 0 : 1);
-    const perDay = elapsed === 0 ? n / total : daysAvailable > 0 ? remaining / daysAvailable : null;
-    const projectedHere = Math.min(n, projected);
+    const planAt = (days: number) => Math.round((n * days) / total);
+    const expected = planAt(elapsed);
+    const todayShare = offDay ? 0 : expected - planAt(elapsed - 1);
+    const behind = expected - d;
+    // Today is available while it is a practice day; before the start and on off days it is not.
+    const daysAvailable = ended ? 0 : left + (practiceToday ? 1 : 0);
+    const perDay = daysAvailable > 0 ? remaining / daysAvailable : null;
     let verdict: PaceGoal["verdict"];
     if (remaining <= 0) verdict = { kind: "done", text: "Done" };
-    else if (elapsed === 0) verdict = { kind: "not-started", text: "Starts Mon Oct 12" };
-    else if (projected >= n) verdict = { kind: "on-track", text: "On track" };
-    else if (projected >= n * 0.85)
-      verdict = { kind: "close", text: `Close: about ${n - projected} short` };
-    else verdict = { kind: "off-pace", text: `Off pace: about ${n - projected} short` };
-    return { key, label, total: n, done: d, remaining, perDay, projected: projectedHere, verdict };
+    else if (elapsed === 0) verdict = { kind: "not-started", text: `Starts ${START}` };
+    else if (ended) verdict = { kind: "behind", text: `Ended ${remaining} short` };
+    else if (behind < 0) verdict = { kind: "on-track", text: `On track, ${-behind} ahead` };
+    else if (behind === 0) verdict = { kind: "on-track", text: "On track" };
+    else if (offDay) verdict = { kind: "behind", text: `${behind} behind` };
+    else if (behind <= todayShare) verdict = { kind: "due", text: `${behind} to go today` };
+    else verdict = { kind: "behind", text: `Behind: ${behind} to go today` };
+    return { key, label, total: n, done: d, remaining, expected, perDay, verdict };
   });
 
-  return { elapsed, left, done, doneToday, avgPerDay, projected, summary, goals };
+  return { elapsed, left, offDay, done, doneToday, avgPerDay, summary, goals };
 }

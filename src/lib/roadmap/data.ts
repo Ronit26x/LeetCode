@@ -50,7 +50,7 @@ export type WeekNumber = 1 | 2 | 3 | 4;
 export type RoadmapDifficulty = "easy" | "medium" | "hard";
 /** P1: asked in the last 30 days or frequency 45+. P2: last 3 months. P3: last 6 months. NC: not Google-tagged, starred on NeetCode. GAP: added to cover a technique the Google lists miss. */
 export type RoadmapPriority = "P1" | "P2" | "P3" | "NC" | "GAP";
-/** core: the 10-a-day plan. plus: the next 32 P2 hards. stretch: everything else. */
+/** core: the main plan (218, about 7.8 a day). plus: the next 32 P2 hards. stretch: everything else. */
 export type RoadmapTier = "core" | "plus" | "stretch";
 export type RoadmapWindow = "30 days" | "3 months" | "6 months";
 
@@ -92,46 +92,77 @@ export interface RoadmapWeek {
   focus: string;
 }
 
-/** Practice runs start to end, then a taper, then the interview. Dates are calendar days. */
-export const ROADMAP_PLAN = {
-  start: "2026-10-12",
-  end: "2026-11-03",
-  totalDays: 23,
-  taperStart: "2026-11-04",
-  taperEnd: "2026-11-11",
-  interview: "2026-11-12",
-  endLabel: "Nov 3",
-  taperLabel: "Nov 4 to 11",
-  interviewLabel: "Thu Nov 12",
-} as const;
+export interface RoadmapPlan {
+  /** First practice day, YYYY-MM-DD. Done marks stamped before it still count. */
+  start: string;
+  /** Last practice day. A review day ends at the next day start, so this one runs to 9 am Nov 11. */
+  end: string;
+  /** Days inside the window with nothing planned: not practice days, the plan line does not move. */
+  offDays: readonly string[];
+  interview: string;
+}
 
+/**
+ * Practice runs start to end on every day except the off days, then the interview. Dates are
+ * review days (YYYY-MM-DD), the same boundary the reviser uses. There is no taper.
+ */
+export const ROADMAP_PLAN: RoadmapPlan = {
+  start: "2026-10-14",
+  end: "2026-11-10",
+  offDays: [],
+  interview: "2026-11-12",
+};
+
+function isoDay(dayNumber: number): string {
+  return new Date(dayNumber * 86_400_000).toISOString().slice(0, 10);
+}
+
+function dayNumberOf(iso: string): number {
+  const [y, m, d] = iso.split("-").map(Number);
+  return Math.floor(Date.UTC(y, m - 1, d) / 86_400_000);
+}
+
+/** Every day of the plan's window that is not an off day, in order. The plan is spread over these. */
+export function practiceDaysOf(plan: RoadmapPlan): string[] {
+  const out: string[] = [];
+  const off = new Set(plan.offDays);
+  for (let n = dayNumberOf(plan.start); n <= dayNumberOf(plan.end); n++) {
+    const day = isoDay(n);
+    if (!off.has(day)) out.push(day);
+  }
+  return out;
+}
+
+export const ROADMAP_PRACTICE_DAYS: readonly string[] = practiceDaysOf(ROADMAP_PLAN);
+
+/** Four bands sized by their core load (about 7.8 core problems a day), tiling the window. */
 export const ROADMAP_WEEKS: RoadmapWeek[] = [
   {
     n: 1,
-    start: "2026-10-12",
-    end: "2026-10-17",
-    dates: "Oct 12–17",
+    start: "2026-10-14",
+    end: "2026-10-20",
+    dates: "Oct 14–20",
     focus: "DP, backtracking, greedy",
   },
   {
     n: 2,
-    start: "2026-10-18",
-    end: "2026-10-24",
-    dates: "Oct 18–24",
+    start: "2026-10-21",
+    end: "2026-10-28",
+    dates: "Oct 21–28",
     focus: "Graphs, trees, trie, design",
   },
   {
     n: 3,
-    start: "2026-10-25",
-    end: "2026-10-31",
-    dates: "Oct 25–31",
+    start: "2026-10-29",
+    end: "2026-11-07",
+    dates: "Oct 29–Nov 7",
     focus: "Arrays, windows, stacks, search, heaps, intervals, lists",
   },
   {
     n: 4,
-    start: "2026-11-01",
-    end: "2026-11-03",
-    dates: "Nov 1–3",
+    start: "2026-11-08",
+    end: "2026-11-10",
+    dates: "Nov 8–10",
     focus: "Math, simulation, range queries, string algorithms",
   },
 ];

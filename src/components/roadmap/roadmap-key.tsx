@@ -7,7 +7,10 @@ const ROWS: [string, string][] = [
     "GAP",
     "Added to cover a technique the Google lists miss: bipartite, iterators, snapshots, ordered-map intervals, reservoir sampling, transitive closure, trie autocomplete.",
   ],
-  ["Core", "The 10-a-day plan: P1, starred, reported in 2026 and GAP, about 218 by Nov 3."],
+  [
+    "Core",
+    "The main plan: P1, starred, reported in 2026 and GAP, 218 by Nov 10 (about 7.8 a day).",
+  ],
   ["Plus", "The next 32 P2 hards, if you are ahead (250 in all)."],
   ["Stretch", "Everything else, only if you are well ahead."],
   [
@@ -25,7 +28,7 @@ const ROWS: [string, string][] = [
   ["Freq", "LeetCode's relative frequency score for Google."],
   [
     "Pace",
-    "Counts Done marks against Oct 12 to Nov 3 and leaves Nov 4 to 11 for the taper before the Nov 12 interview.",
+    "Spreads each tier evenly over the 28 days from Oct 14 to Nov 10 (a day ends at 9 am, so Nov 10 runs to the morning of Nov 11) and compares Done marks with that line at the end of today. The tick on each bar is where the plan is; the fill is where you are. Marks from before Oct 14 count. The interview is Thu Nov 12.",
   ],
 ];
 

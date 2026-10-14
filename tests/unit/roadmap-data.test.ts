@@ -5,6 +5,7 @@ import {
   ROADMAP_EDGES,
   ROADMAP_HANDOFFS,
   ROADMAP_LAYERS,
+  ROADMAP_PLAN,
   ROADMAP_PROBLEMS,
   ROADMAP_WEEKS,
   problemsOf,
@@ -47,6 +48,19 @@ describe("roadmap data", () => {
     for (let i = 1; i < ROADMAP_LAYERS.length; i++)
       expect(ROADMAP_LAYERS[i].week).toBeGreaterThanOrEqual(ROADMAP_LAYERS[i - 1].week);
     expect(ROADMAP_WEEKS.map((w) => w.n)).toEqual([1, 2, 3, 4]);
+  });
+
+  it("the four weeks tile the plan window without gaps", () => {
+    expect(ROADMAP_WEEKS[0].start).toBe(ROADMAP_PLAN.start);
+    expect(ROADMAP_WEEKS.at(-1)!.end).toBe(ROADMAP_PLAN.end);
+    for (let i = 1; i < ROADMAP_WEEKS.length; i++) {
+      const prev = new Date(`${ROADMAP_WEEKS[i - 1].end}T00:00:00Z`).getTime();
+      const next = new Date(`${ROADMAP_WEEKS[i].start}T00:00:00Z`).getTime();
+      expect(next - prev, `week ${i + 1} starts the day after week ${i}`).toBe(86_400_000);
+    }
+    for (const off of ROADMAP_PLAN.offDays) {
+      expect(off >= ROADMAP_PLAN.start && off <= ROADMAP_PLAN.end, `${off} inside`).toBe(true);
+    }
   });
 
   it("draws prerequisite edges downward inside a week and hand-offs between adjacent weeks", () => {
