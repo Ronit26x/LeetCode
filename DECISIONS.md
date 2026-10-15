@@ -179,6 +179,14 @@ the figure holds through the day and moves only at the day boundary, where it be
 left over the days left. Before the start and on off days there is no day to hold, so marks made
 then lower it straight away.
 
+The line itself had a related slip. It spread the whole tier over the practice days from zero,
+so marks made before Oct 14 counted as day-one work: with 25 done before the start and 8 on day
+one the panel said "on track, 18 ahead" next to "needs 13.9 a day", which the user read, rightly,
+as 6 still to go today. The line now starts at the head start (done marks dated before the plan,
+or with no day on record) and spreads the rest evenly, so its slope is the day-one needed rate
+and the two figures agree: 25 + 13.9 is 39 by the end of day one, and 33 done is 6 to go. The
+running average in the summary likewise covers only marks made during the plan.
+
 ## One roadmap, four bands, dashed hand-offs
 
 The page had four separate week graphs joined by one arrow. The user asked for a single roadmap

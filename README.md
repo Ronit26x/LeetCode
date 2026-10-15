@@ -161,7 +161,7 @@ mapped to a four-week plan before the interview. It is a NeetCode-style map, not
   and per tier (core 218, core and plus 250, all 413) the plan line for today and a verdict
   against it: on track, N to go today, or behind. The plan runs Oct 14 to Nov 10 (`ROADMAP_PLAN`
   in `src/lib/roadmap/data.ts`, which can also list off days); there is no taper, and marks
-  from before the start count.
+  from before the start are the head start the line begins from.
 - Nothing here touches cards, review logs or FSRS, and nothing in the reviser reads the marks.
   Problems are linked to LeetCode, not to the library.
 

@@ -28,7 +28,7 @@ const ROWS: [string, string][] = [
   ["Freq", "LeetCode's relative frequency score for Google."],
   [
     "Pace",
-    "Spreads each tier evenly over the 28 days from Oct 14 to Nov 10 (a day ends at 9 am, so Nov 10 runs to the morning of Nov 11) and compares Done marks with that line at the end of today. The tick on each bar is where the plan is; the fill is where you are. Marks from before Oct 14 count. The interview is Thu Nov 12.",
+    "Starts each tier's line at what was done before Oct 14 and spreads the rest evenly over the 28 days to Nov 10 (a day ends at 9 am, so Nov 10 runs to the morning of Nov 11), then compares Done marks with that line at the end of today. The tick on each bar is where the plan is; the fill is where you are. The interview is Thu Nov 12.",
   ],
 ];
 

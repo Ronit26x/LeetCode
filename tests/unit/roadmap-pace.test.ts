@@ -41,13 +41,13 @@ describe("roadmap pace", () => {
     expect(pace.avgPerDay).toBeNull();
     expect(pace.done).toBe(3);
     expect(pace.summary).toContain(
-      "Practice runs Wed Oct 14 to Tue Nov 10: 28 days, then the interview Thu Nov 12. 3 done before the start, counted from day 1.",
+      "Practice runs Wed Oct 14 to Tue Nov 10: 28 days, then the interview Thu Nov 12. 3 done before the start, where the plan line begins.",
     );
     expect(pace.summary).not.toContain("taper");
     expect(computePace({}, "2026-10-13").summary).not.toContain("before the start");
     const core = pace.goals.find((g) => g.key === "core")!;
     expect(core.total).toBe(218);
-    expect(core.expected).toBe(0);
+    expect(core.expected).toBe(3);
     expect(core.perDay).toBeCloseTo(215 / 28, 5);
     expect(core.verdict).toEqual({ kind: "not-started", text: "Starts Wed Oct 14" });
   });
@@ -92,6 +92,33 @@ describe("roadmap pace", () => {
     // 206 core left with 2 of them done today: the rate the day started with, 208 over 27 days.
     expect(pace.goals[0].perDay).toBeCloseTo(208 / 27, 5);
     expect(computePace(doneMarks({ "2026-10-14": 3 }), "2026-10-14").avgPerDay).toBeNull();
+  });
+
+  it("a head start moves the line up, not ahead: the rest is still owed at the needed rate", () => {
+    // 25 marked before Oct 14 and 8 on day 1: everything needs (413 - 25) / 28 = 13.9 a day, so
+    // the line is at 25 + 13.9 = 39 by the end of day 1 and 6 are still to go today.
+    const marks = doneMarks({ "2026-10-12": 25, "2026-10-14": 8 });
+    const all = goal(marks, "2026-10-14", "all");
+    expect(all.done).toBe(33);
+    expect(all.expected).toBe(39);
+    expect(all.perDay).toBeCloseTo(388 / 28, 5);
+    expect(all.verdict).toEqual({ kind: "due", text: "6 to go today" });
+    expect(
+      goal(doneMarks({ "2026-10-12": 25, "2026-10-14": 14 }), "2026-10-14", "all").verdict,
+    ).toEqual({
+      kind: "on-track",
+      text: "On track",
+    });
+    // The next morning the average covers day 1's own marks, not the head start.
+    const day2 = computePace(marks, "2026-10-15");
+    expect(day2.avgPerDay).toBe(8);
+    expect(day2.summary).toContain("Day 2 of 28 · 33 done (0 today) · 8.0 a day before today");
+    // A done mark with no day on record is part of the head start.
+    const undated: RoadmapMarks = {
+      ...marks,
+      [ROADMAP_PROBLEMS[412].number]: { status: "done", doneOn: null },
+    };
+    expect(goal(undated, "2026-10-14", "all").expected).toBe(40);
   });
 
   it("the needed rate holds through the day and only moves at the day boundary", () => {

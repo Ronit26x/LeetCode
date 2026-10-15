@@ -64,10 +64,11 @@ const GOALS: { key: PaceGoal["key"]; label: string; pick: (p: RoadmapProblem) =>
 /**
  * Pure. `today` is the review day (dayStartHour in the user's zone), YYYY-MM-DD.
  *
- * Each goal is spread evenly over the practice days, and the verdict compares Done marks with
- * that plan line at the end of today. A strong first day never carries a weak one: the line only
- * moves one day's share at a time, so "on track" means the work up to and including today is
- * done, and "to go today" is exactly what gets back on it.
+ * Each goal's line starts at the head start (marks made before the plan) and spreads the rest
+ * evenly over the practice days, and the verdict compares Done marks with that line at the end of
+ * today. A strong first day never carries a weak one: the line only moves one day's share at a
+ * time, so "on track" means the work up to and including today is done, and "to go today" is
+ * exactly what gets back on it. The line's slope is the needed rate on day 1, so the two agree.
  */
 export function computePace(
   marks: RoadmapMarks,
@@ -85,20 +86,26 @@ export function computePace(
   const END = dayLabel(plan.end);
   const INTERVIEW = dayLabel(plan.interview);
   const isDone = (p: RoadmapProblem) => marks[p.number]?.status === "done";
+  const doneOn = (p: RoadmapProblem) => marks[p.number]?.doneOn ?? null;
+  // Marked before the plan started, or with no day on record: the head start the line begins from.
+  const isHead = (p: RoadmapProblem) => {
+    const d = doneOn(p);
+    return isDone(p) && (d === null || d < plan.start);
+  };
   const done = ROADMAP_PROBLEMS.filter(isDone).length;
-  const doneToday = ROADMAP_PROBLEMS.filter(
-    (p) => isDone(p) && marks[p.number]?.doneOn === today,
-  ).length;
-  // Today is still being worked (unless it is an off day), so the average covers the days before it.
+  const head = ROADMAP_PROBLEMS.filter(isHead).length;
+  const doneToday = ROADMAP_PROBLEMS.filter((p) => isDone(p) && doneOn(p) === today).length;
+  // Today is still being worked (unless it is an off day), so the average covers the days before
+  // it, and only the marks made during the plan: the head start is not a day's work.
   const finishedDays = offDay || ended ? elapsed : elapsed - 1;
-  const avgPerDay = finishedDays > 0 ? (done - doneToday) / finishedDays : null;
+  const avgPerDay = finishedDays > 0 ? (done - doneToday - head) / finishedDays : null;
   const nextOff = plan.offDays.find((d) => d > today && d <= plan.end);
 
   let summary: string;
   if (elapsed === 0) {
     const off = plan.offDays.length ? `, with ${plan.offDays.map(dayLabel).join(", ")} off` : "";
-    const head = done ? ` ${done} done before the start, counted from day 1.` : "";
-    summary = `Practice runs ${START} to ${END}: ${total} days${off}, then the interview ${INTERVIEW}.${head} Mark problems done as you finish them and each goal shows where you stand against the plan.`;
+    const before = done ? ` ${done} done before the start, where the plan line begins.` : "";
+    summary = `Practice runs ${START} to ${END}: ${total} days${off}, then the interview ${INTERVIEW}.${before} Mark problems done as you finish them and each goal shows where you stand against the plan.`;
   } else if (ended) {
     summary = `Practice ended ${END} with ${done} done. The interview is ${INTERVIEW}.`;
   } else {
@@ -116,12 +123,15 @@ export function computePace(
     const set = ROADMAP_PROBLEMS.filter(pick);
     const n = set.length;
     const d = set.filter(isDone).length;
+    const h = set.filter(isHead).length;
     const remaining = n - d;
-    const planAt = (days: number) => Math.round((n * days) / total);
+    // From the head start, the rest is spread evenly: the slope is the day 1 needed rate, so
+    // "to go today" and "needs N a day" say the same thing.
+    const planAt = (days: number) => Math.round(h + ((n - h) * days) / total);
     const expected = planAt(elapsed);
     const todayShare = offDay ? 0 : expected - planAt(elapsed - 1);
     const behind = expected - d;
-    const doneTodayHere = set.filter((p) => isDone(p) && marks[p.number]?.doneOn === today).length;
+    const doneTodayHere = set.filter((p) => isDone(p) && doneOn(p) === today).length;
     // On a practice day the rate is the one the day started with: dividing what is left now by
     // the days left including today would drop with every mark, so doing exactly the rate would
     // read as getting ahead. Before the start and on off days only the days left count.
