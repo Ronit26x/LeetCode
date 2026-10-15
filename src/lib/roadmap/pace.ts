@@ -22,7 +22,11 @@ export interface PaceGoal {
   remaining: number;
   /** Where the plan line is by the end of today; on an off day, by the end of the last practice day. */
   expected: number;
-  /** Problems a day needed from today to finish by the end of practice; null when no day is left. */
+  /**
+   * Problems a day needed to finish by the end of practice. On a practice day it is the rate at
+   * the start of the day (today's marks come off the remaining count and today stays a full day),
+   * so it holds through the day and only moves at the day boundary. Null when no day is left.
+   */
   perDay: number | null;
   verdict: { kind: PaceVerdictKind; text: string };
 }
@@ -117,9 +121,14 @@ export function computePace(
     const expected = planAt(elapsed);
     const todayShare = offDay ? 0 : expected - planAt(elapsed - 1);
     const behind = expected - d;
-    // Today is available while it is a practice day; before the start and on off days it is not.
-    const daysAvailable = ended ? 0 : left + (practiceToday ? 1 : 0);
-    const perDay = daysAvailable > 0 ? remaining / daysAvailable : null;
+    const doneTodayHere = set.filter((p) => isDone(p) && marks[p.number]?.doneOn === today).length;
+    // On a practice day the rate is the one the day started with: dividing what is left now by
+    // the days left including today would drop with every mark, so doing exactly the rate would
+    // read as getting ahead. Before the start and on off days only the days left count.
+    let perDay: number | null;
+    if (ended) perDay = null;
+    else if (practiceToday) perDay = (remaining + doneTodayHere) / (left + 1);
+    else perDay = left > 0 ? remaining / left : null;
     let verdict: PaceGoal["verdict"];
     if (remaining <= 0) verdict = { kind: "done", text: "Done" };
     else if (elapsed === 0) verdict = { kind: "not-started", text: `Starts ${START}` };

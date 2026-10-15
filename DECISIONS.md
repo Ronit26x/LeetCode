@@ -171,6 +171,14 @@ plan starts Oct 14 (marks from before it still count) and runs to Nov 10, which 
 Nov 11 by the review day boundary, with no taper, because the user asked for every day up to the
 interview to count.
 
+The "needs N a day" figure under each bar had the same swing: it divided what was left by the days
+left including today, so every mark made today lowered it and doing exactly the rate read as
+getting ahead (13.9 a day on day one became 13.4 after 14 were done). It is now the rate the day
+started with: today's marks are added back to the remaining count and today stays a full day, so
+the figure holds through the day and moves only at the day boundary, where it becomes what is
+left over the days left. Before the start and on off days there is no day to hold, so marks made
+then lower it straight away.
+
 ## One roadmap, four bands, dashed hand-offs
 
 The page had four separate week graphs joined by one arrow. The user asked for a single roadmap

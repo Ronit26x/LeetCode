@@ -89,8 +89,28 @@ describe("roadmap pace", () => {
     expect(pace.summary).toBe(
       "Day 2 of 28 · 12 done (2 today) · 10.0 a day before today · practice ends Tue Nov 10, then the interview Thu Nov 12",
     );
-    expect(pace.goals[0].perDay).toBeCloseTo(206 / 27, 5);
+    // 206 core left with 2 of them done today: the rate the day started with, 208 over 27 days.
+    expect(pace.goals[0].perDay).toBeCloseTo(208 / 27, 5);
     expect(computePace(doneMarks({ "2026-10-14": 3 }), "2026-10-14").avgPerDay).toBeNull();
+  });
+
+  it("the needed rate holds through the day and only moves at the day boundary", () => {
+    // Day 1: everything is 413 over 28 days. Marking 15 done today does not change the figure;
+    // the next morning it is what is left over the 27 days left, which includes today's marks.
+    const morning = goal({}, "2026-10-14", "all");
+    const evening = goal(doneMarks({ "2026-10-14": 15 }), "2026-10-14", "all");
+    expect(morning.perDay).toBeCloseTo(413 / 28, 5);
+    expect(evening.perDay).toBe(morning.perDay);
+    expect(evening.remaining).toBe(398);
+    expect(goal(doneMarks({ "2026-10-14": 15 }), "2026-10-15", "all").perDay).toBeCloseTo(
+      398 / 27,
+      5,
+    );
+    // Marks made before the start or on an off day are not a day's work: they lower the rate.
+    expect(goal(doneMarks({ "2026-10-13": 15 }), "2026-10-13", "all").perDay).toBeCloseTo(
+      398 / 28,
+      5,
+    );
   });
 
   it("an off day, when the plan lists one, owes nothing and does not move the line", () => {
