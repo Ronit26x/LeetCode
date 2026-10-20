@@ -118,7 +118,7 @@ export const ROADMAP_PLAN: RoadmapPlan = {
   end: "2026-11-10",
   perDay: 15,
   offDays: [],
-  interview: "2026-11-12",
+  interview: "2026-11-11",
 };
 
 function isoDay(dayNumber: number): string {
