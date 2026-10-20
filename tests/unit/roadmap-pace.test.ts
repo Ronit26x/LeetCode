@@ -43,7 +43,7 @@ describe("roadmap pace", () => {
     expect(ROADMAP_PRACTICE_DAYS[0]).toBe("2026-10-20");
     expect(ROADMAP_PRACTICE_DAYS.at(-1)).toBe("2026-11-10");
     expect(dayLabel(ROADMAP_PLAN.start)).toBe("Tue Oct 20");
-    expect(dayLabel(ROADMAP_PLAN.interview)).toBe("Wed Nov 11");
+    expect(dayLabel(ROADMAP_PLAN.interview)).toBe("Thu Nov 12");
   });
 
   it("before the plan starts nothing has elapsed, earlier marks are the head start, every goal is a full-plan rate", () => {
@@ -55,7 +55,7 @@ describe("roadmap pace", () => {
     expect(pace.done).toBe(92);
     expect(pace.quota).toBe(15);
     expect(pace.summary).toContain(
-      "Practice runs Tue Oct 20 to Tue Nov 10: 22 days at 15 a day, then the interview Wed Nov 11. 92 done before the start, where the plan line begins.",
+      "Practice runs Tue Oct 20 to Tue Nov 10: 22 days at 15 a day, then the interview Thu Nov 12. 92 done before the start, where the plan line begins.",
     );
     expect(pace.summary).not.toContain("taper");
     expect(computePace({}, "2026-10-19").summary).not.toContain("before the start");
@@ -157,7 +157,7 @@ describe("roadmap pace", () => {
     expect(pace.doneToday).toBe(2);
     expect(pace.avgPerDay).toBe(10);
     expect(pace.summary).toBe(
-      "Day 2 of 22 at 15 a day · 104 done (2 today) · 10.0 a day before today · practice ends Tue Nov 10, then the interview Wed Nov 11",
+      "Day 2 of 22 at 15 a day · 104 done (2 today) · 10.0 a day before today · practice ends Tue Nov 10, then the interview Thu Nov 12",
     );
     // 309 left with 2 of them done today: the rate the day started with, 311 over 21 days.
     expect(pace.goals.find((g) => g.key === "all")!.perDay).toBeCloseTo(311 / 21, 5);
@@ -196,7 +196,7 @@ describe("roadmap pace", () => {
     expect(pace.quota).toBeNull();
     expect(pace.summary).toContain("Day 2 of 28 · 8 done (0 today)");
     expect(computePace({}, "2026-10-13", EVEN).summary).toContain(
-      "Practice runs Wed Oct 14 to Tue Nov 10: 28 days, then the interview Wed Nov 11.",
+      "Practice runs Wed Oct 14 to Tue Nov 10: 28 days, then the interview Thu Nov 12.",
     );
   });
 
@@ -270,7 +270,7 @@ describe("roadmap pace", () => {
     expect(pace.left).toBe(0);
     expect(pace.offDay).toBe(false);
     expect(pace.summary).toBe(
-      "Practice ended Tue Nov 10 with 5 done. The interview is Wed Nov 11.",
+      "Practice ended Tue Nov 10 with 5 done. The interview is Thu Nov 12.",
     );
     // No head start: 22 days at 15 cover 330 of 413, so the line ends at that share of core.
     expect(pace.goals[0].expected).toBe(Math.ceil((218 * 330) / 413));
