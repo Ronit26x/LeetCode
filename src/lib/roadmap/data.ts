@@ -50,7 +50,7 @@ export type WeekNumber = 1 | 2 | 3 | 4;
 export type RoadmapDifficulty = "easy" | "medium" | "hard";
 /** P1: asked in the last 30 days or frequency 45+. P2: last 3 months. P3: last 6 months. NC: not Google-tagged, starred on NeetCode. GAP: added to cover a technique the Google lists miss. */
 export type RoadmapPriority = "P1" | "P2" | "P3" | "NC" | "GAP";
-/** core: the main plan (218, about 7.8 a day). plus: the next 32 P2 hards. stretch: everything else. */
+/** core: the must-do set (218). plus: the next 32 P2 hards. stretch: everything else. The plan's daily quota covers all three. */
 export type RoadmapTier = "core" | "plus" | "stretch";
 export type RoadmapWindow = "30 days" | "3 months" | "6 months";
 
@@ -97,6 +97,11 @@ export interface RoadmapPlan {
   start: string;
   /** Last practice day. A review day ends at the next day start, so this one runs to 9 am Nov 11. */
   end: string;
+  /**
+   * Problems a day the plan commits to, every tier together. Each tier's line rises with its
+   * share of the quota and caps at the tier. Null spreads each tier evenly over the practice days.
+   */
+  perDay: number | null;
   /** Days inside the window with nothing planned: not practice days, the plan line does not move. */
   offDays: readonly string[];
   interview: string;
@@ -104,11 +109,14 @@ export interface RoadmapPlan {
 
 /**
  * Practice runs start to end on every day except the off days, then the interview. Dates are
- * review days (YYYY-MM-DD), the same boundary the reviser uses. There is no taper.
+ * review days (YYYY-MM-DD), the same boundary the reviser uses. There is no taper. Revised on
+ * Oct 19 from an even spread over Oct 14 to Nov 10 to 15 a day from Oct 20; the 92 done by then
+ * are the head start the lines begin from.
  */
 export const ROADMAP_PLAN: RoadmapPlan = {
-  start: "2026-10-14",
+  start: "2026-10-20",
   end: "2026-11-10",
+  perDay: 15,
   offDays: [],
   interview: "2026-11-12",
 };
@@ -135,20 +143,20 @@ export function practiceDaysOf(plan: RoadmapPlan): string[] {
 
 export const ROADMAP_PRACTICE_DAYS: readonly string[] = practiceDaysOf(ROADMAP_PLAN);
 
-/** Four bands sized by their core load (about 7.8 core problems a day), tiling the window. */
+/** Four bands sized by what was left in each when the plan was revised (about 15 a day), tiling the window. */
 export const ROADMAP_WEEKS: RoadmapWeek[] = [
   {
     n: 1,
-    start: "2026-10-14",
-    end: "2026-10-20",
-    dates: "Oct 14–20",
+    start: "2026-10-20",
+    end: "2026-10-21",
+    dates: "Oct 20–21",
     focus: "DP, backtracking, greedy",
   },
   {
     n: 2,
-    start: "2026-10-21",
+    start: "2026-10-22",
     end: "2026-10-28",
-    dates: "Oct 21–28",
+    dates: "Oct 22–28",
     focus: "Graphs, trees, trie, design",
   },
   {

@@ -4,190 +4,234 @@ import {
   ROADMAP_PRACTICE_DAYS,
   ROADMAP_PROBLEMS,
   practiceDaysOf,
+  type RoadmapPlan,
 } from "@/lib/roadmap/data";
 import type { RoadmapMarks } from "@/lib/roadmap/marks";
 import { computePace, dayLabel } from "@/lib/roadmap/pace";
 
-/** The first core problems done, `n` of them stamped on each `doneOn` in order. */
-function doneMarks(counts: Record<string, number>): RoadmapMarks {
+const CORE = ROADMAP_PROBLEMS.filter((p) => p.tier === "core");
+
+/** The first problems of `pool` done, `n` of them stamped on each `doneOn` in order. */
+function doneMarks(counts: Record<string, number>, pool = CORE): RoadmapMarks {
   const marks: RoadmapMarks = {};
-  const core = ROADMAP_PROBLEMS.filter((p) => p.tier === "core");
   let i = 0;
   for (const [doneOn, n] of Object.entries(counts))
-    for (let k = 0; k < n; k++) marks[core[i++].number] = { status: "done", doneOn };
+    for (let k = 0; k < n; k++) marks[pool[i++].number] = { status: "done", doneOn };
   return marks;
 }
 
-const goal = (marks: RoadmapMarks, today: string, key: "core" | "plus" | "all") =>
-  computePace(marks, today).goals.find((g) => g.key === key)!;
+/** The live shape when the plan was revised: 92 done before Oct 20. Core only, to keep the arithmetic plain. */
+const HEAD = { "2026-10-12": 18, "2026-10-13": 7, "2026-10-14": 15, "2026-10-15": 52 };
+
+const goal = (
+  marks: RoadmapMarks,
+  today: string,
+  key: "core" | "plus" | "all",
+  plan: RoadmapPlan = ROADMAP_PLAN,
+) => computePace(marks, today, plan).goals.find((g) => g.key === key)!;
+
+/** The plan before the revision: every tier spread evenly over Oct 14 to Nov 10. */
+const EVEN: RoadmapPlan = { ...ROADMAP_PLAN, start: "2026-10-14", perDay: null };
 
 describe("roadmap pace", () => {
-  it("runs Oct 14 to Nov 10 with no off day and no taper", () => {
-    expect(ROADMAP_PLAN.start).toBe("2026-10-14");
+  it("is 15 a day from Oct 20 to Nov 10 with no off day and no taper", () => {
+    expect(ROADMAP_PLAN.start).toBe("2026-10-20");
     expect(ROADMAP_PLAN.end).toBe("2026-11-10");
+    expect(ROADMAP_PLAN.perDay).toBe(15);
     expect(ROADMAP_PLAN.offDays).toEqual([]);
-    expect(ROADMAP_PRACTICE_DAYS).toHaveLength(28);
-    expect(ROADMAP_PRACTICE_DAYS[0]).toBe("2026-10-14");
+    expect(ROADMAP_PRACTICE_DAYS).toHaveLength(22);
+    expect(ROADMAP_PRACTICE_DAYS[0]).toBe("2026-10-20");
     expect(ROADMAP_PRACTICE_DAYS.at(-1)).toBe("2026-11-10");
-    expect(dayLabel(ROADMAP_PLAN.start)).toBe("Wed Oct 14");
+    expect(dayLabel(ROADMAP_PLAN.start)).toBe("Tue Oct 20");
     expect(dayLabel(ROADMAP_PLAN.interview)).toBe("Thu Nov 12");
   });
 
-  it("before the plan starts nothing has elapsed, earlier marks count, every goal is a full-plan rate", () => {
-    const pace = computePace(doneMarks({ "2026-10-12": 3 }), "2026-10-13");
+  it("before the plan starts nothing has elapsed, earlier marks are the head start, every goal is a full-plan rate", () => {
+    const pace = computePace(doneMarks(HEAD), "2026-10-19");
     expect(pace.elapsed).toBe(0);
-    expect(pace.left).toBe(28);
+    expect(pace.left).toBe(22);
     expect(pace.offDay).toBe(false);
     expect(pace.avgPerDay).toBeNull();
-    expect(pace.done).toBe(3);
+    expect(pace.done).toBe(92);
+    expect(pace.quota).toBe(15);
     expect(pace.summary).toContain(
-      "Practice runs Wed Oct 14 to Tue Nov 10: 28 days, then the interview Thu Nov 12. 3 done before the start, where the plan line begins.",
+      "Practice runs Tue Oct 20 to Tue Nov 10: 22 days at 15 a day, then the interview Thu Nov 12. 92 done before the start, where the plan line begins.",
     );
     expect(pace.summary).not.toContain("taper");
-    expect(computePace({}, "2026-10-13").summary).not.toContain("before the start");
-    const core = pace.goals.find((g) => g.key === "core")!;
-    expect(core.total).toBe(218);
-    expect(core.expected).toBe(3);
-    expect(core.perDay).toBeCloseTo(215 / 28, 5);
-    expect(core.verdict).toEqual({ kind: "not-started", text: "Starts Wed Oct 14" });
+    expect(computePace({}, "2026-10-19").summary).not.toContain("before the start");
+    const all = pace.goals.find((g) => g.key === "all")!;
+    expect(all.total).toBe(413);
+    expect(all.expected).toBe(92);
+    expect(all.perDay).toBeCloseTo(321 / 22, 5);
+    expect(all.verdict).toEqual({ kind: "not-started", text: "Starts Tue Oct 20" });
+    expect(pace.goals.find((g) => g.key === "core")!.expected).toBe(92);
   });
 
-  it("owes today's share in the morning and is on track once it is done", () => {
-    // Day 2: the core line is at round(218 * 2 / 28) = 16, today's share is 16 - 8 = 8.
-    const morning = goal(doneMarks({ "2026-10-14": 8 }), "2026-10-15", "core");
-    expect(morning.expected).toBe(16);
-    expect(morning.verdict).toEqual({ kind: "due", text: "8 to go today" });
-    const evening = goal(doneMarks({ "2026-10-14": 8, "2026-10-15": 8 }), "2026-10-15", "core");
-    expect(evening.verdict).toEqual({ kind: "on-track", text: "On track" });
-    const ahead = goal(doneMarks({ "2026-10-14": 8, "2026-10-15": 11 }), "2026-10-15", "core");
-    expect(ahead.verdict).toEqual({ kind: "on-track", text: "On track, 3 ahead" });
-  });
-
-  it("a strong first day only carries as far as the line has moved", () => {
-    // 16 on day one and 4 on day two is 20 against a line of 16: on track, 4 ahead. The same 16
-    // alone on day three (line 23, share 7) owes exactly today's share, so it is due; on day four
-    // (line 31, share 8) it owes 15, more than the share, so it is behind.
-    const pace = computePace(doneMarks({ "2026-10-14": 16, "2026-10-15": 4 }), "2026-10-15");
-    expect(pace.goals[0].verdict).toEqual({ kind: "on-track", text: "On track, 4 ahead" });
-    expect(goal(doneMarks({ "2026-10-14": 16 }), "2026-10-16", "core").verdict).toEqual({
-      kind: "due",
-      text: "7 to go today",
-    });
-    expect(goal(doneMarks({ "2026-10-14": 16 }), "2026-10-17", "core").verdict).toEqual({
-      kind: "behind",
-      text: "Behind: 15 to go today",
-    });
-  });
-
-  it("averages over the finished days and counts today as available", () => {
-    const pace = computePace(doneMarks({ "2026-10-14": 10, "2026-10-15": 2 }), "2026-10-15");
-    expect(pace.elapsed).toBe(2);
-    expect(pace.left).toBe(26);
-    expect(pace.done).toBe(12);
-    expect(pace.doneToday).toBe(2);
-    expect(pace.avgPerDay).toBe(10);
-    expect(pace.summary).toBe(
-      "Day 2 of 28 · 12 done (2 today) · 10.0 a day before today · practice ends Tue Nov 10, then the interview Thu Nov 12",
-    );
-    // 206 core left with 2 of them done today: the rate the day started with, 208 over 27 days.
-    expect(pace.goals[0].perDay).toBeCloseTo(208 / 27, 5);
-    expect(computePace(doneMarks({ "2026-10-14": 3 }), "2026-10-14").avgPerDay).toBeNull();
-  });
-
-  it("a head start moves the line up, not ahead: the rest is still owed at the needed rate", () => {
-    // 25 marked before Oct 14 and 8 on day 1: everything needs (413 - 25) / 28 = 13.9 a day, so
-    // the line is at 25 + 13.9 = 39 by the end of day 1 and 6 are still to go today.
-    const marks = doneMarks({ "2026-10-12": 25, "2026-10-14": 8 });
-    const all = goal(marks, "2026-10-14", "all");
-    expect(all.done).toBe(33);
-    expect(all.expected).toBe(39);
-    expect(all.perDay).toBeCloseTo(388 / 28, 5);
-    expect(all.verdict).toEqual({ kind: "due", text: "6 to go today" });
-    expect(
-      goal(doneMarks({ "2026-10-12": 25, "2026-10-14": 14 }), "2026-10-14", "all").verdict,
-    ).toEqual({
+  it("owes the quota in the morning and is on track once it is done", () => {
+    // Day 1 with 92 done before: everything is at 92 + 15 = 107 by the end of the day.
+    const morning = goal(doneMarks(HEAD), "2026-10-20", "all");
+    expect(morning.expected).toBe(107);
+    expect(morning.verdict).toEqual({ kind: "due", text: "15 to go today" });
+    const rest = ROADMAP_PROBLEMS.filter((p) => !(p.number in doneMarks(HEAD)));
+    const evening = {
+      ...doneMarks(HEAD),
+      ...doneMarks({ "2026-10-20": 15 }, rest),
+    };
+    expect(goal(evening, "2026-10-20", "all").verdict).toEqual({
       kind: "on-track",
       text: "On track",
     });
-    // The next morning the average covers day 1's own marks, not the head start.
-    const day2 = computePace(marks, "2026-10-15");
-    expect(day2.avgPerDay).toBe(8);
-    expect(day2.summary).toContain("Day 2 of 28 · 33 done (0 today) · 8.0 a day before today");
-    // A done mark with no day on record is part of the head start.
-    const undated: RoadmapMarks = {
-      ...marks,
-      [ROADMAP_PROBLEMS[412].number]: { status: "done", doneOn: null },
-    };
-    expect(goal(undated, "2026-10-14", "all").expected).toBe(40);
+    const ahead = { ...doneMarks(HEAD), ...doneMarks({ "2026-10-20": 18 }, rest) };
+    expect(goal(ahead, "2026-10-20", "all").verdict).toEqual({
+      kind: "on-track",
+      text: "On track, 3 ahead",
+    });
   });
 
-  it("the needed rate holds through the day and only moves at the day boundary", () => {
-    // Day 1: everything is 413 over 28 days. Marking 15 done today does not change the figure;
-    // the next morning it is what is left over the 27 days left, which includes today's marks.
-    const morning = goal({}, "2026-10-14", "all");
-    const evening = goal(doneMarks({ "2026-10-14": 15 }), "2026-10-14", "all");
-    expect(morning.perDay).toBeCloseTo(413 / 28, 5);
-    expect(evening.perDay).toBe(morning.perDay);
-    expect(evening.remaining).toBe(398);
-    expect(goal(doneMarks({ "2026-10-14": 15 }), "2026-10-15", "all").perDay).toBeCloseTo(
-      398 / 27,
-      5,
-    );
-    // Marks made before the start or on an off day are not a day's work: they lower the rate.
-    expect(goal(doneMarks({ "2026-10-13": 15 }), "2026-10-13", "all").perDay).toBeCloseTo(
-      398 / 28,
-      5,
-    );
+  it("each tier rises with its share of the quota", () => {
+    // 321 left at 15 a day is 21.4 days. Day 1 covers 1 / 21.4 of what each tier has left:
+    // core 92 + 126 / 21.4 = 98 (6 to go), core and plus 92 + 158 / 21.4 = 99 (7 to go).
+    const marks = doneMarks(HEAD);
+    const core = goal(marks, "2026-10-20", "core");
+    expect(core.expected).toBe(98);
+    expect(core.verdict).toEqual({ kind: "due", text: "6 to go today" });
+    const plus = goal(marks, "2026-10-20", "plus");
+    expect(plus.expected).toBe(99);
+    expect(plus.verdict).toEqual({ kind: "due", text: "7 to go today" });
+    // The needed rate is still what finishes the tier: 126 core over 22 days.
+    expect(core.perDay).toBeCloseTo(126 / 22, 5);
   });
 
-  it("an off day, when the plan lists one, owes nothing and does not move the line", () => {
-    const plan = { ...ROADMAP_PLAN, offDays: ["2026-10-18"] };
-    expect(practiceDaysOf(plan)).toHaveLength(27);
-    expect(practiceDaysOf(plan)).not.toContain("2026-10-18");
-    const marks = doneMarks({ "2026-10-14": 8, "2026-10-15": 8, "2026-10-16": 30 });
-    const sat = computePace(marks, "2026-10-17", plan);
-    const sun = computePace(marks, "2026-10-18", plan);
-    const mon = computePace(marks, "2026-10-19", plan);
-    expect(sat.elapsed).toBe(4);
-    expect(sun.elapsed).toBe(4);
-    expect(sun.offDay).toBe(true);
-    expect(sun.left).toBe(23);
-    expect(sun.avgPerDay).toBeCloseTo(46 / 4, 5);
-    expect(sun.summary).toContain("Sun Oct 18 is an off day · 46 done after 4 of 27 days");
-    expect(sat.summary).toContain("Sun Oct 18 off");
-    expect(computePace({}, "2026-10-13", plan).summary).toContain("27 days, with Sun Oct 18 off");
-    expect(sun.goals[0].expected).toBe(sat.goals[0].expected);
-    expect(sun.goals[0].perDay).toBeCloseTo((218 - 46) / 23, 5);
-    expect(mon.elapsed).toBe(5);
-    expect(mon.goals[0].expected).toBe(Math.round((218 * 5) / 27));
-    const short = computePace(doneMarks({ "2026-10-14": 8 }), "2026-10-18", plan).goals[0];
-    expect(short.verdict).toEqual({ kind: "behind", text: `${short.expected - 8} behind` });
-  });
-
-  it("the plus and all tiers get their own lines", () => {
-    // Day 2 lines: plus round(250 * 2 / 28) = 18 (share 9), all round(413 * 2 / 28) = 30 (share 15).
-    const marks = doneMarks({ "2026-10-14": 8, "2026-10-15": 8 });
-    expect(goal(marks, "2026-10-15", "plus").verdict).toEqual({
+  it("the line on everything climbs exactly the quota a day and caps at the total", () => {
+    const marks = doneMarks(HEAD);
+    expect(goal(marks, "2026-10-29", "all").expected).toBe(92 + 150); // day 10
+    expect(goal(marks, "2026-11-09", "all").expected).toBe(92 + 315); // day 21
+    expect(goal(marks, "2026-11-10", "all").expected).toBe(413); // day 22: the last 6
+    const rest = ROADMAP_PROBLEMS.filter((p) => !(p.number in marks));
+    const lastMorning = { ...marks, ...doneMarks({ "2026-11-09": 315 }, rest) };
+    expect(goal(lastMorning, "2026-11-10", "all").verdict).toEqual({
       kind: "due",
-      text: "2 to go today",
+      text: "6 to go today",
     });
-    expect(goal(marks, "2026-10-15", "all").verdict).toEqual({
-      kind: "due",
-      text: "14 to go today",
-    });
-    const few = doneMarks({ "2026-10-14": 5 });
-    expect(goal(few, "2026-10-15", "core").verdict).toEqual({
-      kind: "behind",
-      text: "Behind: 11 to go today",
-    });
-    expect(goal(few, "2026-10-15", "plus").verdict).toEqual({
-      kind: "behind",
-      text: "Behind: 13 to go today",
-    });
-    expect(goal(few, "2026-10-15", "all").verdict).toEqual({
+  });
+
+  it("a strong first day only carries as far as the line has moved", () => {
+    // 20 on day one and 5 on day two is 117 against a line of 122: 5 to go, within the day's
+    // 15. The same 20 alone on day three (line 137) owes 25, more than the share, so it is behind.
+    const rest = ROADMAP_PROBLEMS.filter((p) => !(p.number in doneMarks(HEAD)));
+    const two = { ...doneMarks(HEAD), ...doneMarks({ "2026-10-20": 20, "2026-10-21": 5 }, rest) };
+    expect(goal(two, "2026-10-21", "all").verdict).toEqual({ kind: "due", text: "5 to go today" });
+    const one = { ...doneMarks(HEAD), ...doneMarks({ "2026-10-20": 20 }, rest) };
+    expect(goal(one, "2026-10-22", "all").verdict).toEqual({
       kind: "behind",
       text: "Behind: 25 to go today",
     });
+  });
+
+  it("averages over the finished days of the plan and counts today as available", () => {
+    const rest = ROADMAP_PROBLEMS.filter((p) => !(p.number in doneMarks(HEAD)));
+    const marks = { ...doneMarks(HEAD), ...doneMarks({ "2026-10-20": 10, "2026-10-21": 2 }, rest) };
+    const pace = computePace(marks, "2026-10-21");
+    expect(pace.elapsed).toBe(2);
+    expect(pace.left).toBe(20);
+    expect(pace.done).toBe(104);
+    expect(pace.doneToday).toBe(2);
+    expect(pace.avgPerDay).toBe(10);
+    expect(pace.summary).toBe(
+      "Day 2 of 22 at 15 a day · 104 done (2 today) · 10.0 a day before today · practice ends Tue Nov 10, then the interview Thu Nov 12",
+    );
+    // 309 left with 2 of them done today: the rate the day started with, 311 over 21 days.
+    expect(pace.goals.find((g) => g.key === "all")!.perDay).toBeCloseTo(311 / 21, 5);
+    expect(computePace(doneMarks(HEAD), "2026-10-20").avgPerDay).toBeNull();
+  });
+
+  it("the needed rate holds through the day and only moves at the day boundary", () => {
+    const rest = ROADMAP_PROBLEMS.filter((p) => !(p.number in doneMarks(HEAD)));
+    const morning = goal(doneMarks(HEAD), "2026-10-20", "all");
+    const fifteen = { ...doneMarks(HEAD), ...doneMarks({ "2026-10-20": 15 }, rest) };
+    const evening = goal(fifteen, "2026-10-20", "all");
+    expect(morning.perDay).toBeCloseTo(321 / 22, 5);
+    expect(evening.perDay).toBe(morning.perDay);
+    expect(evening.remaining).toBe(306);
+    expect(goal(fifteen, "2026-10-21", "all").perDay).toBeCloseTo(306 / 21, 5);
+    // Marks made before the start are not a day's work: they lower the rate straight away.
+    expect(goal(doneMarks({ "2026-10-19": 15 }), "2026-10-19", "all").perDay).toBeCloseTo(
+      398 / 22,
+      5,
+    );
+  });
+
+  it("without a quota each tier is spread evenly over the practice days", () => {
+    expect(practiceDaysOf(EVEN)).toHaveLength(28);
+    // Day 2: the core line is at round(218 * 2 / 28) = 16, today's share is 16 - 8 = 8.
+    const morning = goal(doneMarks({ "2026-10-14": 8 }), "2026-10-15", "core", EVEN);
+    expect(morning.expected).toBe(16);
+    expect(morning.verdict).toEqual({ kind: "due", text: "8 to go today" });
+    // 25 before Oct 14 and 8 on day 1: everything needs (413 - 25) / 28 = 13.9 a day, so the
+    // line is at 25 + 13.9 = 39 by the end of day 1 and 6 are still to go today.
+    const all = goal(doneMarks({ "2026-10-12": 25, "2026-10-14": 8 }), "2026-10-14", "all", EVEN);
+    expect(all.expected).toBe(39);
+    expect(all.perDay).toBeCloseTo(388 / 28, 5);
+    expect(all.verdict).toEqual({ kind: "due", text: "6 to go today" });
+    const pace = computePace(doneMarks({ "2026-10-14": 8 }), "2026-10-15", EVEN);
+    expect(pace.quota).toBeNull();
+    expect(pace.summary).toContain("Day 2 of 28 · 8 done (0 today)");
+    expect(computePace({}, "2026-10-13", EVEN).summary).toContain(
+      "Practice runs Wed Oct 14 to Tue Nov 10: 28 days, then the interview Thu Nov 12.",
+    );
+  });
+
+  it("a done mark with no day on record is part of the head start", () => {
+    const undated: RoadmapMarks = {
+      ...doneMarks(HEAD),
+      [ROADMAP_PROBLEMS[412].number]: { status: "done", doneOn: null },
+    };
+    // 93 before the start, 320 left: day 1 is 93 + 15 = 108.
+    expect(goal(undated, "2026-10-20", "all").expected).toBe(108);
+  });
+
+  it("an off day, when the plan lists one, owes nothing and does not move the line", () => {
+    const plan = { ...ROADMAP_PLAN, offDays: ["2026-10-25"] };
+    expect(practiceDaysOf(plan)).toHaveLength(21);
+    expect(practiceDaysOf(plan)).not.toContain("2026-10-25");
+    const rest = ROADMAP_PROBLEMS.filter((p) => !(p.number in doneMarks(HEAD)));
+    const marks = {
+      ...doneMarks(HEAD),
+      ...doneMarks(
+        {
+          "2026-10-20": 15,
+          "2026-10-21": 15,
+          "2026-10-22": 15,
+          "2026-10-23": 15,
+          "2026-10-24": 15,
+        },
+        rest,
+      ),
+    };
+    const sat = computePace(marks, "2026-10-24", plan);
+    const sun = computePace(marks, "2026-10-25", plan);
+    const mon = computePace(marks, "2026-10-26", plan);
+    expect(sat.elapsed).toBe(5);
+    expect(sun.elapsed).toBe(5);
+    expect(sun.offDay).toBe(true);
+    expect(sun.left).toBe(16);
+    expect(sun.avgPerDay).toBe(15);
+    expect(sun.summary).toContain(
+      "Sun Oct 25 is an off day · 167 done after 5 of 21 days at 15 a day · 15.0 a day so far",
+    );
+    expect(sat.summary).toContain("Sun Oct 25 off");
+    expect(computePace({}, "2026-10-19", plan).summary).toContain(
+      "21 days at 15 a day, with Sun Oct 25 off",
+    );
+    const all = (p: ReturnType<typeof computePace>) => p.goals.find((g) => g.key === "all")!;
+    expect(all(sun).expected).toBe(all(sat).expected);
+    expect(all(sun).expected).toBe(167);
+    expect(all(sun).verdict).toEqual({ kind: "on-track", text: "On track" });
+    expect(all(sun).perDay).toBeCloseTo((413 - 167) / 16, 5);
+    expect(mon.elapsed).toBe(6);
+    expect(all(mon).expected).toBe(182);
+    const short = goal(doneMarks(HEAD), "2026-10-25", "all", plan);
+    expect(short.verdict).toEqual({ kind: "behind", text: "75 behind" });
   });
 
   it("marks a finished goal done and caps the plan line", () => {
@@ -203,13 +247,14 @@ describe("roadmap pace", () => {
 
   it("after the end date the window is spent", () => {
     const pace = computePace(doneMarks({ "2026-11-01": 5 }), "2026-11-11");
-    expect(pace.elapsed).toBe(28);
+    expect(pace.elapsed).toBe(22);
     expect(pace.left).toBe(0);
     expect(pace.offDay).toBe(false);
     expect(pace.summary).toBe(
       "Practice ended Tue Nov 10 with 5 done. The interview is Thu Nov 12.",
     );
-    expect(pace.goals[0].expected).toBe(218);
+    // No head start: 22 days at 15 cover 330 of 413, so the line ends at that share of core.
+    expect(pace.goals[0].expected).toBe(Math.round((218 * 330) / 413));
     expect(pace.goals[0].perDay).toBeNull();
     expect(pace.goals[0].verdict).toEqual({ kind: "behind", text: "Ended 213 short" });
   });

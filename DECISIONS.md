@@ -197,3 +197,34 @@ dashed edges, so the whole thing is one connected drawing and the reading order 
 Hand-offs do not pull nodes during layout, so each week's prerequisite tree stays centered in its
 band. Below the tablet breakpoint the SVG would shrink below legibility, so phones get the same
 weeks and topics as a tappable list without edges.
+
+## The plan is a quota from Oct 20, and the tiers share it
+
+Five days in, the user asked for the plan to be 15 a day from Oct 20 to Nov 10 instead of each
+tier spread evenly from Oct 14. `ROADMAP_PLAN` now carries `perDay`, and the 92 done by Oct 19
+are the head start the lines begin from (the start moved, so everything before it counts as
+before the plan, the same rule as before). Everything left, 321 across every tier, at 15 a day
+is 21.4 days of work; the line on Everything rises exactly 15 a day and caps at 413 on the last
+day, and each tier's line rises with its share of those 15 (core 126 of 321, so about 6 a day)
+rather than at 15 of its own, because the quota is on problems, not on core problems, and a line
+of 15 core a day would have called core behind from the first week no matter what was done. The
+"needs N a day" figure keeps its meaning, the rate that finishes the tier by Nov 10, which is
+now slightly under the quota (14.6 for everything): the quota is the commitment, the needs figure
+the arithmetic. With `perDay` null the old even spread is still there, and tested. The four
+bands were re-tiled on what was left in each (24, 107, 152, 38), so week 1 is two days.
+
+## Spreading the backlog moves every due date by the same number of days
+
+With 67 due and the oldest five days overdue, the user asked for the backlog to clear in order
+from tomorrow: the five-day cards tomorrow, the four-day cards the day after, and so on. That is
+one shift applied to every active card, six days here (the oldest age plus one), so the relative
+order the scheduler produced is kept and each day carries what one day produced. The shift is
+wall-clock days in the settings timezone, so a review day maps to a review day across the
+November DST change. Only `due` changes. Stability, difficulty, the interval the last grade
+produced and the review logs stay as they were: ts-fsrs computes elapsed days from `last_review`
+and never reads `due`, so the next grade sees a later review and the model is told nothing
+false. The materialized `queue_days` row for the day is left alone; it lists ids and the queue
+filters them by due. The script (`scripts/spread-backlog.mts`) reports the counts per day,
+writes nothing on `--dry-run`, takes `--days N` (negative to undo) and `--backup` for a JSON of
+every move. No button in the app: this is a deliberate, occasional intervention, and a script
+with a dry run is the right shape for it.

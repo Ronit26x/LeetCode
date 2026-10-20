@@ -16,7 +16,9 @@ opt-in for tests and offline dev; postgres.js hangs on the transaction pooler, s
 
 `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`,
 `pnpm db:generate`, `pnpm db:migrate` (uses DIRECT_URL), `pnpm db:studio`, `pnpm db:seed` (local
-databases only), `pnpm db:seed:gfg [--dry-run]` (idempotent GFG history import), `pnpm screenshots` (all screens, three themes, two widths; needs a dev server and
+databases only), `pnpm db:seed:gfg [--dry-run]` (idempotent GFG history import), `pnpm db:spread-backlog [--dry-run]`
+(pushes every active card's due date by the same days so the oldest overdue lands tomorrow; needs
+DATABASE_URL), `pnpm screenshots` (all screens, three themes, two widths; needs a dev server and
 AUTH_TEST_LOGIN), `pnpm exec tsx scripts/a11y.mts` (Lighthouse accessibility), `pnpm deploy`.
 
 Local offline loop: `.env.local` with `DATABASE_URL=pglite://.pglite` and `AUTH_TEST_LOGIN=Ronit26x`,

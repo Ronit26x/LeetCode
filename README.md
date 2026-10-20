@@ -122,6 +122,12 @@ later requests read it back and only append cards that became due since, so the 
 across reloads and devices. A daily soft cap hides the tail behind "Show more" but never an
 overdue card.
 
+When the backlog has piled up, `pnpm db:spread-backlog` pushes every active card's due date
+later by the same number of days, so the oldest overdue review lands tomorrow and the rest follow
+in the scheduler's order, one day's worth at a time. Only `due` moves: stability, intervals and
+logs are untouched, because `ts-fsrs` measures elapsed time from the last review, not the due
+date. `--dry-run` shows the counts per day first and `--days -N` undoes a spread of N.
+
 ### Interview date, ramp, cram
 
 With an interview date set, every active card shows its predicted recall on that date if not
@@ -157,11 +163,12 @@ mapped to a four-week plan before the interview. It is a NeetCode-style map, not
   weeks render as a tappable list.
 - Done / Redo marks are the only state (`roadmap_marks`, keyed by LeetCode number). Marking done
   stamps the review day (the same 9 am boundary as the reviser, so a late night still counts as
-  the day it started), which feeds the pace panel: day n of 28, the average over finished days,
+  the day it started), which feeds the pace panel: day n of 22, the average over finished days,
   and per tier (core 218, core and plus 250, all 413) the plan line for today and a verdict
-  against it: on track, N to go today, or behind. The plan runs Oct 14 to Nov 10 (`ROADMAP_PLAN`
-  in `src/lib/roadmap/data.ts`, which can also list off days); there is no taper, and marks
-  from before the start are the head start the line begins from.
+  against it: on track, N to go today, or behind. The plan is 15 a day from Oct 20 to Nov 10
+  (`ROADMAP_PLAN` in `src/lib/roadmap/data.ts`, which can also list off days, or drop the quota
+  for an even spread); there is no taper, marks from before the start are the head start the
+  lines begin from, and each tier's line rises with its share of the quota.
 - Nothing here touches cards, review logs or FSRS, and nothing in the reviser reads the marks.
   Problems are linked to LeetCode, not to the library.
 
@@ -194,6 +201,7 @@ Revise / Resolve, `N` notes, `C` code, `O` opens the source, `Z` undoes, `Esc` l
 | `pnpm db:generate` / `pnpm db:migrate` / `pnpm db:studio` | drizzle-kit |
 | `pnpm db:seed` | Sample data, local databases only |
 | `pnpm db:seed:gfg [--dry-run]` | Import the GeeksforGeeks solved list from `data/seed/gfg-backlog.json` (idempotent) |
+| `pnpm db:spread-backlog [--dry-run] [--days N] [--backup file]` | Push every active card's due date by the same number of days so the oldest overdue review lands tomorrow; only `due` moves |
 | `pnpm screenshots` | Every screen in Light, Dim and Dark at desktop and phone widths |
 | `pnpm deploy` | `vercel --prod` |
 

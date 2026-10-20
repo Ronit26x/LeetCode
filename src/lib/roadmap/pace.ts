@@ -42,6 +42,8 @@ export interface Pace {
   doneToday: number;
   /** Average over the practice days before today, which is still being worked. Null on day 1. */
   avgPerDay: number | null;
+  /** The plan's daily quota, every tier together; null when each tier is spread evenly instead. */
+  quota: number | null;
   summary: string;
   goals: PaceGoal[];
 }
@@ -64,11 +66,13 @@ const GOALS: { key: PaceGoal["key"]; label: string; pick: (p: RoadmapProblem) =>
 /**
  * Pure. `today` is the review day (dayStartHour in the user's zone), YYYY-MM-DD.
  *
- * Each goal's line starts at the head start (marks made before the plan) and spreads the rest
- * evenly over the practice days, and the verdict compares Done marks with that line at the end of
- * today. A strong first day never carries a weak one: the line only moves one day's share at a
- * time, so "on track" means the work up to and including today is done, and "to go today" is
- * exactly what gets back on it. The line's slope is the needed rate on day 1, so the two agree.
+ * Each goal's line starts at the head start (marks made before the plan) and rises from there,
+ * and the verdict compares Done marks with that line at the end of today. With a quota the line
+ * on everything rises exactly the quota a day until what was left at the start is covered, and
+ * each tier rises with its share of that; without one each tier is spread evenly over the
+ * practice days. A strong first day never carries a weak one: the line only moves one day's
+ * share at a time, so "on track" means the work up to and including today is done, and "to go
+ * today" is exactly what gets back on it.
  */
 export function computePace(
   marks: RoadmapMarks,
@@ -82,6 +86,7 @@ export function computePace(
   const ended = today > plan.end;
   const practiceToday = days.includes(today);
   const offDay = today >= plan.start && !ended && !practiceToday;
+  const quota = plan.perDay;
   const START = dayLabel(plan.start);
   const END = dayLabel(plan.end);
   const INTERVIEW = dayLabel(plan.interview);
@@ -100,18 +105,27 @@ export function computePace(
   const finishedDays = offDay || ended ? elapsed : elapsed - 1;
   const avgPerDay = finishedDays > 0 ? (done - doneToday - head) / finishedDays : null;
   const nextOff = plan.offDays.find((d) => d > today && d <= plan.end);
+  // Days the plan takes to cover what was left at the start, every tier together: at 15 a day,
+  // 321 left is 21.4 days. Without a quota that is the whole window.
+  const planDays = quota ? (ROADMAP_PROBLEMS.length - head) / quota : total;
+  const fractionAt = (days: number) =>
+    planDays > 0 ? Math.min(1, Math.max(0, days) / planDays) : 1;
+  const rate = quota ? ` at ${quota} a day` : "";
 
   let summary: string;
   if (elapsed === 0) {
     const off = plan.offDays.length ? `, with ${plan.offDays.map(dayLabel).join(", ")} off` : "";
     const before = done ? ` ${done} done before the start, where the plan line begins.` : "";
-    summary = `Practice runs ${START} to ${END}: ${total} days${off}, then the interview ${INTERVIEW}.${before} Mark problems done as you finish them and each goal shows where you stand against the plan.`;
+    summary = `Practice runs ${START} to ${END}: ${total} days${rate}${off}, then the interview ${INTERVIEW}.${before} Mark problems done as you finish them and each goal shows where you stand against the plan.`;
   } else if (ended) {
     summary = `Practice ended ${END} with ${done} done. The interview is ${INTERVIEW}.`;
   } else {
     const parts = offDay
-      ? [`${dayLabel(today)} is an off day`, `${done} done after ${elapsed} of ${total} days`]
-      : [`Day ${elapsed} of ${total}`, `${done} done (${doneToday} today)`];
+      ? [
+          `${dayLabel(today)} is an off day`,
+          `${done} done after ${elapsed} of ${total} days${rate}`,
+        ]
+      : [`Day ${elapsed} of ${total}${rate}`, `${done} done (${doneToday} today)`];
     if (avgPerDay !== null)
       parts.push(`${avgPerDay.toFixed(1)} a day${offDay ? " so far" : " before today"}`);
     if (nextOff) parts.push(`${dayLabel(nextOff)} off`);
@@ -125,9 +139,10 @@ export function computePace(
     const d = set.filter(isDone).length;
     const h = set.filter(isHead).length;
     const remaining = n - d;
-    // From the head start, the rest is spread evenly: the slope is the day 1 needed rate, so
-    // "to go today" and "needs N a day" say the same thing.
-    const planAt = (days: number) => Math.round(h + ((n - h) * days) / total);
+    // From the head start, the rest follows the plan's fraction for the day: with a quota that
+    // is the tier's share of the quota, capped at the tier; without one, an even spread whose
+    // slope is the day 1 needed rate, so "to go today" and "needs N a day" say the same thing.
+    const planAt = (days: number) => Math.round(h + (n - h) * fractionAt(days));
     const expected = planAt(elapsed);
     const todayShare = offDay ? 0 : expected - planAt(elapsed - 1);
     const behind = expected - d;
@@ -151,5 +166,5 @@ export function computePace(
     return { key, label, total: n, done: d, remaining, expected, perDay, verdict };
   });
 
-  return { elapsed, left, offDay, done, doneToday, avgPerDay, summary, goals };
+  return { elapsed, left, offDay, done, doneToday, avgPerDay, quota, summary, goals };
 }

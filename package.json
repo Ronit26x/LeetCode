@@ -20,7 +20,8 @@
     "icons": "node scripts/icons.mjs",
     "screenshots": "tsx scripts/screenshots.ts",
     "deploy": "vercel --prod",
-    "db:seed:gfg": "tsx scripts/seed-gfg.ts"
+    "db:seed:gfg": "tsx scripts/seed-gfg.ts",
+    "db:spread-backlog": "tsx scripts/spread-backlog.mts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
