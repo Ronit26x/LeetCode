@@ -14,6 +14,7 @@ import {
 } from "@/lib/roadmap/data";
 import { edgePath, layoutRoadmap } from "@/lib/roadmap/layout";
 import {
+  completePatterns,
   patternProgress,
   weekProgress,
   type RoadmapMarks,
@@ -77,12 +78,18 @@ function GraphSvg({
     selectedPattern !== "" && (selectedPattern === a || selectedPattern === b);
   const inWeek = (code: PatternCode) =>
     selectedWeek === 0 || LAYOUT.nodes[code].week === selectedWeek;
+  const complete = completePatterns(marks);
+  // An edge whose two patterns are both complete takes the completed outline's green and a
+  // heavier stroke: finishing a topic colors the lines around it.
+  const done = (a: PatternCode, b: PatternCode) => complete.has(a) && complete.has(b);
   const edgeClass = (a: PatternCode, b: PatternCode) =>
     cn(
       "transition-opacity duration-150",
-      touches(a, b) ? "stroke-primary" : "stroke-border-strong",
+      touches(a, b) ? "stroke-primary" : done(a, b) ? "stroke-good" : "stroke-border-strong",
       !inWeek(a) && !inWeek(b) && "opacity-40",
     );
+  const edgeWidth = (a: PatternCode, b: PatternCode) =>
+    done(a, b) ? 2.5 : touches(a, b) ? 2 : 1.5;
   // Week titles get a background-colored halo so a hand-off passing behind them stays legible.
   const halo = "stroke-background [paint-order:stroke]";
 
@@ -101,7 +108,7 @@ function GraphSvg({
             strokeDasharray="4 4"
             strokeLinecap="round"
             className={edgeClass(a, b)}
-            strokeWidth={touches(a, b) ? 2 : 1.5}
+            strokeWidth={edgeWidth(a, b)}
           />
         ))}
       </g>
@@ -207,7 +214,7 @@ function GraphSvg({
             key={`${a}-${b}`}
             d={edgePath(LAYOUT.nodes[a], LAYOUT.nodes[b], NODE_H)}
             className={edgeClass(a, b)}
-            strokeWidth={touches(a, b) ? 2 : 1.5}
+            strokeWidth={edgeWidth(a, b)}
           />
         ))}
       </g>
@@ -216,7 +223,7 @@ function GraphSvg({
         const pos = LAYOUT.nodes[code];
         const prog = patternProgress(code, marks);
         const selected = selectedPattern === code;
-        const full = prog.total > 0 && prog.done === prog.total;
+        const full = complete.has(code);
         const select = () => onSelectPattern(code);
         const barW = NODE_W - 28;
         return (

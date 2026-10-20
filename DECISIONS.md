@@ -210,8 +210,18 @@ rather than at 15 of its own, because the quota is on problems, not on core prob
 of 15 core a day would have called core behind from the first week no matter what was done. The
 "needs N a day" figure keeps its meaning, the rate that finishes the tier by Nov 10, which is
 now slightly under the quota (14.6 for everything): the quota is the commitment, the needs figure
-the arithmetic. With `perDay` null the old even spread is still there, and tested. The four
-bands were re-tiled on what was left in each (24, 107, 152, 38), so week 1 is two days.
+the arithmetic. The line rounds up rather than to nearest, so what a day asks for is never under
+the rate: against "needs 7.7 a day" the verdict reads 8 to go, not 7, as the user asked. With
+`perDay` null the old even spread is still there, and tested. The four bands were re-tiled on
+what was left in each (24, 107, 152, 38), so week 1 is two days.
+
+## Edges between two complete patterns turn green
+
+A pattern with every problem done already gets the completion green on its outline (the rating
+green, the one hue besides the accent the roadmap is allowed). The user asked for the lines
+between two such patterns to take the same color and a heavier stroke, so finishing a topic
+visibly closes the lines around it. Prerequisite edges and dashed hand-offs both qualify; a
+selected edge keeps the accent, since selection is interaction and wins over state.
 
 ## Spreading the backlog moves every due date by the same number of days
 

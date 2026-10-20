@@ -110,6 +110,9 @@ export function computePace(
   const planDays = quota ? (ROADMAP_PROBLEMS.length - head) / quota : total;
   const fractionAt = (days: number) =>
     planDays > 0 ? Math.min(1, Math.max(0, days) / planDays) : 1;
+  // The line rounds up, so what a day asks for is never under the rate: 7.7 a day reads as 8 to
+  // go, not 7. The small slack keeps an exact multiple (15 x 1 in floating point) from tipping over.
+  const ceilAt = (x: number) => Math.ceil(x - 1e-9);
   const rate = quota ? ` at ${quota} a day` : "";
 
   let summary: string;
@@ -142,7 +145,7 @@ export function computePace(
     // From the head start, the rest follows the plan's fraction for the day: with a quota that
     // is the tier's share of the quota, capped at the tier; without one, an even spread whose
     // slope is the day 1 needed rate, so "to go today" and "needs N a day" say the same thing.
-    const planAt = (days: number) => Math.round(h + (n - h) * fractionAt(days));
+    const planAt = (days: number) => h + ceilAt((n - h) * fractionAt(days));
     const expected = planAt(elapsed);
     const todayShare = offDay ? 0 : expected - planAt(elapsed - 1);
     const behind = expected - d;

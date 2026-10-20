@@ -89,17 +89,36 @@ describe("roadmap pace", () => {
   });
 
   it("each tier rises with its share of the quota", () => {
-    // 321 left at 15 a day is 21.4 days. Day 1 covers 1 / 21.4 of what each tier has left:
-    // core 92 + 126 / 21.4 = 98 (6 to go), core and plus 92 + 158 / 21.4 = 99 (7 to go).
+    // 321 left at 15 a day is 21.4 days. Day 1 covers 1 / 21.4 of what each tier has left,
+    // rounded up: core 92 + 5.9 = 98 (6 to go), core and plus 92 + 7.4 = 100 (8 to go).
     const marks = doneMarks(HEAD);
     const core = goal(marks, "2026-10-20", "core");
     expect(core.expected).toBe(98);
     expect(core.verdict).toEqual({ kind: "due", text: "6 to go today" });
     const plus = goal(marks, "2026-10-20", "plus");
-    expect(plus.expected).toBe(99);
-    expect(plus.verdict).toEqual({ kind: "due", text: "7 to go today" });
+    expect(plus.expected).toBe(100);
+    expect(plus.verdict).toEqual({ kind: "due", text: "8 to go today" });
     // The needed rate is still what finishes the tier: 126 core over 22 days.
     expect(core.perDay).toBeCloseTo(126 / 22, 5);
+  });
+
+  it("rounds what is owed up, so a fraction short is never read as on track", () => {
+    // Core needs 126 / 21.4 = 5.9 a day from a head start of 92. By the end of day 7 the exact
+    // line is 92 + 41.2: rounding to nearest would call 41 done on track, rounding up asks for
+    // one more. The quota on everything is an exact 15 a day either way.
+    const rest = CORE.slice(92);
+    const seven = { ...doneMarks(HEAD), ...doneMarks({ "2026-10-25": 41 }, rest) };
+    const day7 = goal(seven, "2026-10-26", "core");
+    expect(day7.expected).toBe(134);
+    expect(day7.verdict).toEqual({ kind: "due", text: "1 to go today" });
+    const done = { ...doneMarks(HEAD), ...doneMarks({ "2026-10-25": 42 }, rest) };
+    expect(goal(done, "2026-10-26", "core").verdict).toEqual({
+      kind: "on-track",
+      text: "On track",
+    });
+    expect(goal(doneMarks(HEAD), "2026-10-20", "all").verdict.text).toBe("15 to go today");
+    // The needed rate keeps its decimals.
+    expect(goal(doneMarks(HEAD), "2026-10-20", "core").perDay).toBeCloseTo(126 / 22, 5);
   });
 
   it("the line on everything climbs exactly the quota a day and caps at the total", () => {
@@ -254,7 +273,7 @@ describe("roadmap pace", () => {
       "Practice ended Tue Nov 10 with 5 done. The interview is Wed Nov 11.",
     );
     // No head start: 22 days at 15 cover 330 of 413, so the line ends at that share of core.
-    expect(pace.goals[0].expected).toBe(Math.round((218 * 330) / 413));
+    expect(pace.goals[0].expected).toBe(Math.ceil((218 * 330) / 413));
     expect(pace.goals[0].perDay).toBeNull();
     expect(pace.goals[0].verdict).toEqual({ kind: "behind", text: "Ended 213 short" });
   });

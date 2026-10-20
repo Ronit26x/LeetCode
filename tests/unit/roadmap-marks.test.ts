@@ -3,7 +3,8 @@ import { freshDb } from "../helpers/db";
 import type { Db } from "@/db";
 import { applyRoadmapMark, listRoadmapMarks } from "@/lib/roadmap/core";
 import { passesFilters, EMPTY_FILTERS } from "@/lib/roadmap/filters";
-import { ROADMAP_PROBLEMS } from "@/lib/roadmap/data";
+import { ROADMAP_PROBLEMS, problemsOf } from "@/lib/roadmap/data";
+import { completePatterns, type RoadmapMarks } from "@/lib/roadmap/marks";
 
 let db: Db;
 
@@ -59,5 +60,19 @@ describe("roadmap filters", () => {
     expect(passesFilters(maxSub, { ...EMPTY_FILTERS, q: "maximum sub" }, undefined)).toBe(true);
     expect(passesFilters(maxSub, { ...EMPTY_FILTERS, q: "house" }, undefined)).toBe(false);
     expect(passesFilters(maxSub, { ...EMPTY_FILTERS, pattern: "D2" }, undefined)).toBe(false);
+  });
+});
+
+describe("complete patterns", () => {
+  it("lists a pattern only once every one of its problems is done", () => {
+    const marks: RoadmapMarks = {};
+    for (const p of problemsOf("BT")) marks[p.number] = { status: "done", doneOn: "2026-10-20" };
+    const d1 = problemsOf("D1");
+    for (const p of d1.slice(1)) marks[p.number] = { status: "done", doneOn: "2026-10-20" };
+    marks[d1[0].number] = { status: "redo", doneOn: null };
+    expect([...completePatterns(marks)]).toEqual(["BT"]);
+    marks[d1[0].number] = { status: "done", doneOn: "2026-10-21" };
+    expect([...completePatterns(marks)].sort()).toEqual(["BT", "D1"]);
+    expect(completePatterns({}).size).toBe(0);
   });
 });

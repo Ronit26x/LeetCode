@@ -53,6 +53,16 @@ export function patternProgress(code: PatternCode, marks: RoadmapMarks): Roadmap
   return progressOf(problemsOf(code), marks);
 }
 
+/** Patterns with every problem marked done: the green outline, and the green edges between two of them. */
+export function completePatterns(marks: RoadmapMarks): Set<PatternCode> {
+  const out = new Set<PatternCode>();
+  for (const code of PATTERN_CODES) {
+    const p = patternProgress(code, marks);
+    if (p.total > 0 && p.done === p.total) out.add(code);
+  }
+  return out;
+}
+
 export function weekProgress(week: WeekNumber, marks: RoadmapMarks): RoadmapProgress {
   const codes = PATTERN_CODES.filter((c) => PATTERNS[c].week === week);
   return progressOf(

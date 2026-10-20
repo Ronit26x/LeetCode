@@ -149,8 +149,9 @@ export function RoadmapView({
             Four weeks, one roadmap
           </h2>
           <p className="text-2xs text-fg-subtle sm:text-right">
-            Solid lines are prerequisites inside a week, dashed lines hand off to the next week.
-            Select a topic to list only its problems, or a week&apos;s title to list that week.
+            Solid lines are prerequisites inside a week, dashed lines hand off to the next week, and
+            a line turns green once both its patterns are complete. Select a topic to list only its
+            problems, or a week&apos;s title to list that week.
           </p>
         </div>
         <RoadmapGraph
