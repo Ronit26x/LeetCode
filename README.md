@@ -151,8 +151,8 @@ refused). The coverage strip shows core / warmup counts and how many are schedul
 
 ## The roadmap
 
-`/roadmap` is a second, independent surface: the Google pattern list (413 problems in 34 patterns:
-377 Google-tagged on LeetCode in the last six months, 12 more NeetCode stars, 24 gap-fillers)
+`/roadmap` is a second, independent surface: the Google pattern list (417 problems in 34 patterns:
+377 Google-tagged on LeetCode in the last six months, 12 more NeetCode stars, 28 gap-fillers)
 mapped to a four-week plan before the interview. It is a NeetCode-style map, not a scheduler.
 
 - The list lives in `data/roadmap/problems.json` and the patterns, weeks and graph in
@@ -163,9 +163,9 @@ mapped to a four-week plan before the interview. It is a NeetCode-style map, not
   weeks render as a tappable list.
 - Done / Redo marks are the only state (`roadmap_marks`, keyed by LeetCode number). Marking done
   stamps the review day (the same 9 am boundary as the reviser, so a late night still counts as
-  the day it started), which feeds the pace panel: day n of 22, the average over finished days,
-  and per tier (core 218, core and plus 250, all 413) the plan line for today and a verdict
-  against it: on track, N to go today, or behind. The plan is 15 a day from Oct 20 to Nov 10
+  the day it started), which feeds the pace panel: day n of 20, the average over finished days,
+  and per tier (core 222, core and plus 254, all 417) the plan line for today and a verdict
+  against it: on track, N to go today, or behind. The plan is 15 a day from Oct 22 to Nov 10
   (`ROADMAP_PLAN` in `src/lib/roadmap/data.ts`, which can also list off days, or drop the quota
   for an even spread); there is no taper, marks from before the start are the head start the
   lines begin from, and each tier's line rises with its share of the quota.

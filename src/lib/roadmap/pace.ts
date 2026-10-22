@@ -106,7 +106,7 @@ export function computePace(
   const avgPerDay = finishedDays > 0 ? (done - doneToday - head) / finishedDays : null;
   const nextOff = plan.offDays.find((d) => d > today && d <= plan.end);
   // Days the plan takes to cover what was left at the start, every tier together: at 15 a day,
-  // 321 left is 21.4 days. Without a quota that is the whole window.
+  // 300 left is 20 days. Without a quota that is the whole window.
   const planDays = quota ? (ROADMAP_PROBLEMS.length - head) / quota : total;
   const fractionAt = (days: number) =>
     planDays > 0 ? Math.min(1, Math.max(0, days) / planDays) : 1;

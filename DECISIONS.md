@@ -215,6 +215,13 @@ the rate: against "needs 7.7 a day" the verdict reads 8 to go, not 7, as the use
 `perDay` null the old even spread is still there, and tested. The four bands were re-tiled on
 what was left in each (24, 107, 152, 38), so week 1 is two days.
 
+Two days in, on Oct 21, the user moved the start to Oct 22. The same rule applies: the 117 done
+by then (the four gap-fillers added that day make the list 417) are the head start, and the 300
+left are exactly 20 days at 15, so the line on Everything reaches the total on the last day with
+nothing to spare. The bands were re-tiled on what was left (15, 93, 152, 40), so week 1 is one
+day. The review backlog was spread by two days the same evening, so the oldest due cards also land
+on Oct 22.
+
 ## Edges between two complete patterns turn green
 
 A pattern with every problem done already gets the completion green on its outline (the rating

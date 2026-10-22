@@ -16,10 +16,10 @@ const layerOf = new Map<PatternCode, number>();
 ROADMAP_LAYERS.forEach((l, i) => l.codes.forEach((c) => layerOf.set(c, i)));
 
 describe("roadmap data", () => {
-  it("has 413 problems with unique numbers and slugs, each on a known pattern", () => {
-    expect(ROADMAP_PROBLEMS).toHaveLength(413);
-    expect(new Set(ROADMAP_PROBLEMS.map((p) => p.number)).size).toBe(413);
-    expect(new Set(ROADMAP_PROBLEMS.map((p) => p.slug)).size).toBe(413);
+  it("has 417 problems with unique numbers and slugs, each on a known pattern", () => {
+    expect(ROADMAP_PROBLEMS).toHaveLength(417);
+    expect(new Set(ROADMAP_PROBLEMS.map((p) => p.number)).size).toBe(417);
+    expect(new Set(ROADMAP_PROBLEMS.map((p) => p.slug)).size).toBe(417);
     for (const p of ROADMAP_PROBLEMS) {
       expect(PATTERNS[p.pattern], `${p.title} pattern`).toBeDefined();
       expect(["easy", "medium", "hard"]).toContain(p.difficulty);
@@ -32,7 +32,7 @@ describe("roadmap data", () => {
 
   it("keeps the tier counts the plan was written against", () => {
     const by = (t: string) => ROADMAP_PROBLEMS.filter((p) => p.tier === t).length;
-    expect(by("core")).toBe(218);
+    expect(by("core")).toBe(222);
     expect(by("plus")).toBe(32);
     expect(by("stretch")).toBe(163);
   });

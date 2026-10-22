@@ -1,10 +1,11 @@
 /**
- * The Google R2 pattern list: 413 LeetCode problems grouped by the pattern to recognize and
+ * The Google R2 pattern list: 417 LeetCode problems grouped by the pattern to recognize and
  * mapped to a four-week plan before the interview. Static, curated data; the only state the app
  * stores is the Done / Redo mark per problem (`roadmap_marks`). Nothing here touches cards, logs
  * or FSRS: the roadmap and the reviser live side by side and stay independent.
  *
- * Built from the pattern-list artifact on 2026-10-12. Edit by hand after that.
+ * Built from the pattern-list artifact on 2026-10-12. Edit by hand after that; four gap-fillers
+ * (685, 1489, 201, 3133) were added on 2026-10-21.
  */
 import problemsJson from "../../../data/roadmap/problems.json";
 
@@ -50,7 +51,7 @@ export type WeekNumber = 1 | 2 | 3 | 4;
 export type RoadmapDifficulty = "easy" | "medium" | "hard";
 /** P1: asked in the last 30 days or frequency 45+. P2: last 3 months. P3: last 6 months. NC: not Google-tagged, starred on NeetCode. GAP: added to cover a technique the Google lists miss. */
 export type RoadmapPriority = "P1" | "P2" | "P3" | "NC" | "GAP";
-/** core: the must-do set (218). plus: the next 32 P2 hards. stretch: everything else. The plan's daily quota covers all three. */
+/** core: the must-do set (222). plus: the next 32 P2 hards. stretch: everything else. The plan's daily quota covers all three. */
 export type RoadmapTier = "core" | "plus" | "stretch";
 export type RoadmapWindow = "30 days" | "3 months" | "6 months";
 
@@ -110,11 +111,12 @@ export interface RoadmapPlan {
 /**
  * Practice runs start to end on every day except the off days, then the interview. Dates are
  * review days (YYYY-MM-DD), the same boundary the reviser uses. There is no taper. Revised on
- * Oct 19 from an even spread over Oct 14 to Nov 10 to 15 a day from Oct 20; the 92 done by then
- * are the head start the lines begin from.
+ * Oct 19 from an even spread over Oct 14 to Nov 10 to 15 a day from Oct 20, then moved on Oct 21
+ * to start Oct 22: the 117 done by then are the head start the lines begin from, and the 300
+ * left are exactly 20 days at 15.
  */
 export const ROADMAP_PLAN: RoadmapPlan = {
-  start: "2026-10-20",
+  start: "2026-10-22",
   end: "2026-11-10",
   perDay: 15,
   offDays: [],
@@ -147,16 +149,16 @@ export const ROADMAP_PRACTICE_DAYS: readonly string[] = practiceDaysOf(ROADMAP_P
 export const ROADMAP_WEEKS: RoadmapWeek[] = [
   {
     n: 1,
-    start: "2026-10-20",
-    end: "2026-10-21",
-    dates: "Oct 20–21",
+    start: "2026-10-22",
+    end: "2026-10-22",
+    dates: "Oct 22",
     focus: "DP, backtracking, greedy",
   },
   {
     n: 2,
-    start: "2026-10-22",
+    start: "2026-10-23",
     end: "2026-10-28",
-    dates: "Oct 22–28",
+    dates: "Oct 23–28",
     focus: "Graphs, trees, trie, design",
   },
   {

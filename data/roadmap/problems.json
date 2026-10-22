@@ -2114,6 +2114,20 @@
     "reported2026": false
   },
   {
+    "number": 685,
+    "title": "Redundant Connection II",
+    "slug": "redundant-connection-ii",
+    "difficulty": "hard",
+    "pattern": "UF",
+    "priority": "GAP",
+    "tier": "core",
+    "frequency": 0,
+    "window": null,
+    "solvedBefore": false,
+    "neetcodeCategory": null,
+    "reported2026": false
+  },
+  {
     "number": 1722,
     "title": "Minimize Hamming Distance After Swap Operations",
     "slug": "minimize-hamming-distance-after-swap-operations",
@@ -2294,6 +2308,20 @@
     "solvedBefore": false,
     "neetcodeCategory": null,
     "reported2026": true
+  },
+  {
+    "number": 1489,
+    "title": "Find Critical and Pseudo-Critical Edges in Minimum Spanning Tree",
+    "slug": "find-critical-and-pseudo-critical-edges-in-minimum-spanning-tree",
+    "difficulty": "hard",
+    "pattern": "SP",
+    "priority": "GAP",
+    "tier": "core",
+    "frequency": 0,
+    "window": null,
+    "solvedBefore": false,
+    "neetcodeCategory": null,
+    "reported2026": false
   },
   {
     "number": 1928,
@@ -5600,6 +5628,20 @@
     "reported2026": false
   },
   {
+    "number": 201,
+    "title": "Bitwise AND of Numbers Range",
+    "slug": "bitwise-and-of-numbers-range",
+    "difficulty": "medium",
+    "pattern": "MB",
+    "priority": "GAP",
+    "tier": "core",
+    "frequency": 0,
+    "window": null,
+    "solvedBefore": false,
+    "neetcodeCategory": null,
+    "reported2026": false
+  },
+  {
     "number": 382,
     "title": "Linked List Random Node",
     "slug": "linked-list-random-node",
@@ -5626,6 +5668,20 @@
     "solvedBefore": false,
     "neetcodeCategory": null,
     "reported2026": true
+  },
+  {
+    "number": 3133,
+    "title": "Minimum Array End",
+    "slug": "minimum-array-end",
+    "difficulty": "medium",
+    "pattern": "MB",
+    "priority": "GAP",
+    "tier": "core",
+    "frequency": 0,
+    "window": null,
+    "solvedBefore": false,
+    "neetcodeCategory": null,
+    "reported2026": false
   },
   {
     "number": 190,
